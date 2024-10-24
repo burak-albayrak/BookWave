@@ -1,10 +1,17 @@
 import React from 'react';
 
 const UserPage = () => {
+    // Kullanıcı bilgilerini state veya props ile alabilirsin. Şimdilik sabit bir bilgi gösteriyorum.
+    const userInfo = {
+        username: 'Kullanıcı Adı',
+        email: 'kullanici@example.com'
+    };
+
     return (
         <div>
-            <h2>User Information</h2>
-            {/* Kullanıcı bilgileri ve kitap listesi buraya gelecek */}
+            <h1>Profil Bilgileri</h1>
+            <p>Kullanıcı Adı: {userInfo.username}</p>
+            <p>Email: {userInfo.email}</p>
         </div>
     );
 };

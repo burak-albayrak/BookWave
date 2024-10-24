@@ -1,23 +1,49 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // useNavigate ekledik
 
-const UserLogin = () => {
+const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate(); // Yönlendirme işlemi için kullanıyoruz
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // Login işlemleri
-        console.log("Logged in with:", email, password);
+        // Giriş işlemleri burada yapılacak (backend doğrulaması vs.)
+        // Başarılı giriş sonrası ana sayfaya yönlendirme
+        console.log("Giriş yapıldı:", { email, password });
+        navigate('/main'); // Başarılı giriş sonrası MainPage'e yönlendiriyoruz
     };
 
     return (
-        <form onSubmit={handleLogin}>
-            <h2>User Login</h2>
-            <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-            <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-            <button type="submit">Login</button>
-        </form>
+        <div>
+            <h2>Giriş Yap</h2>
+            <form onSubmit={handleLogin}>
+                <div>
+                    <label htmlFor="email">E-posta:</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label htmlFor="password">Şifre:</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit">Giriş Yap</button>
+            </form>
+        </div>
     );
 };
 
-export default UserLogin;
+export default Login;
