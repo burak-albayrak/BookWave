@@ -1,25 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import UserLogin from './components/User/UserLogin';
+import Register from './components/User/Register';
+import MainPage from './components/User/MainPage';
+import UserPage from './components/User/UserPage';
+import AdminLogin from './components/Admin/AdminLogin';
+import AdminPage from './components/Admin/AdminPage';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <div>
+        <UserLogin />
+        <Register />
+        <MainPage username="X" />
+        <UserPage />
+        <AdminLogin />
+        <AdminPage />
+      </div>
   );
-}
+};
 
 export default App;
