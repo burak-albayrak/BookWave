@@ -1,14 +1,37 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { UserContext } from '../../UserContext';
 
 const UserPage = () => {
-    const navigate = useNavigate();
+    const { state } = useContext(UserContext);
+    const { user } = state;
 
     return (
         <div>
-            <h2>Kullanıcı Bilgileri</h2>
-            {/* Kullanıcı bilgilerini burada gösterin */}
-            <button onClick={() => navigate('/main')}>Ana Sayfaya Dön</button>
+            <h2>User Page</h2>
+            {user ? (
+                <div>
+                    <p><strong>Name:</strong> {user.name} {user.surname}</p>
+                    <p><strong>Email:</strong> {user.email}</p>
+                    <p><strong>Date of Birth:</strong> {user.dob}</p>
+                    <p><strong>Location:</strong> {user.location}</p>
+
+                    <h3>Previously Read Books:</h3>
+                    <ul>
+                        {/* Buraya okunan kitapların ve tarihlerin listeleneceği bir yapı ekleyin */}
+                        <li>Book Title 1 - Reservation Date: YYYY-MM-DD</li>
+                        <li>Book Title 2 - Reservation Date: YYYY-MM-DD</li>
+                    </ul>
+
+                    <h3>Currently Reading:</h3>
+                    <ul>
+                        {/* Buraya şu an okunmakta olan kitapların ve tarihlerin listeleneceği bir yapı ekleyin */}
+                        <li>Current Book Title 1 - Borrowed From: YYYY-MM-DD To: YYYY-MM-DD</li>
+                        <li>Current Book Title 2 - Borrowed From: YYYY-MM-DD To: YYYY-MM-DD</li>
+                    </ul>
+                </div>
+            ) : (
+                <p>Please log in to see your information.</p>
+            )}
         </div>
     );
 };
