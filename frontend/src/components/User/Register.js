@@ -1,61 +1,44 @@
+
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // useNavigate ekledik
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const navigate = useNavigate(); // Yönlendirme işlemi için kullanıyoruz
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleRegister = (e) => {
         e.preventDefault();
-        // Kayıt işlemleri burada yapılacak (backend'e gönderme vs.)
-        // Başarılı kayıt sonrası ana sayfaya yönlendirme
-        console.log("Kullanıcı kaydedildi:", { username, email, password });
-        navigate('/'); // Başarılı kayıt sonrası ana sayfaya yönlendiriyoruz
+        // E-posta ve şifre ile kayıt işlemleri
+        console.log("Kayıt Bilgileri:", { email, password });
+        navigate('/main'); // Kayıt başarılıysa ana sayfaya yönlendirme
     };
 
     return (
         <div>
             <h2>Kayıt Ol</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="username">Kullanıcı Adı:</label>
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="email">E-posta:</label>
+            <form onSubmit={handleRegister}>
+                <label>
+                    E-posta:
                     <input
                         type="email"
-                        id="email"
-                        name="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
-                </div>
-                <div>
-                    <label htmlFor="password">Şifre:</label>
+                </label>
+                <label>
+                    Şifre:
                     <input
                         type="password"
-                        id="password"
-                        name="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                </div>
+                </label>
                 <button type="submit">Kayıt Ol</button>
             </form>
-
-            <p>Zaten kullanıcı mısınız? O zaman <Link to="/login">Giriş Yapın</Link></p>
+            <p>Zaten kullanıcı mısınız? <button onClick={() => navigate('/login')}>Giriş Yap</button></p>
         </div>
     );
 };

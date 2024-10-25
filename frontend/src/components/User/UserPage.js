@@ -1,17 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const UserPage = () => {
-    // Kullanıcı bilgilerini state veya props ile alabilirsin. Şimdilik sabit bir bilgi gösteriyorum.
-    const userInfo = {
-        username: 'Kullanıcı Adı',
-        email: 'kullanici@example.com'
-    };
+    const navigate = useNavigate();
 
     return (
         <div>
-            <h1>Profil Bilgileri</h1>
-            <p>Kullanıcı Adı: {userInfo.username}</p>
-            <p>Email: {userInfo.email}</p>
+            <h2>Kullanıcı Bilgileri</h2>
+            {/* Kullanıcı bilgilerini burada gösterin */}
+            <button onClick={() => navigate('/main')}>Ana Sayfaya Dön</button>
         </div>
     );
 };
