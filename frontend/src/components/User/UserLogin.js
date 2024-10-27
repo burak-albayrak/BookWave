@@ -10,13 +10,21 @@ const UserLogin = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // Kullanıcı bilgilerini ayarla
+
+        // Admin control
+        const isAdmin = email === 'admin@example.com' && password === 'admin123';
+
+
         dispatch({
             type: 'SET_USER',
-            payload: { email, password }
+            payload: {
+                user: { email },
+                isAdmin,
+            }
         });
-        navigate('/main'); // Ana sayfaya yönlendir
+        navigate('/main');
     };
+
 
     return (
         <div>

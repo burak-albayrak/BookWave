@@ -17,14 +17,14 @@ const UserPage = () => {
 
                     <h3>Previously Read Books:</h3>
                     <ul>
-                        {/* Buraya okunan kitapların ve tarihlerin listeleneceği bir yapı ekleyin */}
+                        {/* okunan kitapların ve tarihlerin listeleneceği bir yapı ekleee */}
                         <li>Book Title 1 - Reservation Date: YYYY-MM-DD</li>
                         <li>Book Title 2 - Reservation Date: YYYY-MM-DD</li>
                     </ul>
 
                     <h3>Currently Reading:</h3>
                     <ul>
-                        {/* Buraya şu an okunmakta olan kitapların ve tarihlerin listeleneceği bir yapı ekleyin */}
+                        {/*  şu an okunmakta olan kitapların ve tarihlerin listeleneceği bir yapı ekleeee*/}
                         <li>Current Book Title 1 - Borrowed From: YYYY-MM-DD To: YYYY-MM-DD</li>
                         <li>Current Book Title 2 - Borrowed From: YYYY-MM-DD To: YYYY-MM-DD</li>
                     </ul>

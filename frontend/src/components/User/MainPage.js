@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DatePicker from 'react-datepicker'; // Takvim bileşenini içe aktar
-import 'react-datepicker/dist/react-datepicker.css'; // Takvim stilini içe aktar
+import DatePicker from 'react-datepicker'; // datepicker for rezervation
+import 'react-datepicker/dist/react-datepicker.css';
 
 const MainPage = () => {
     const [bookName, setBookName] = useState('');
     const [searchResult, setSearchResult] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(null); // Seçilen tarih durumu
+    const [selectedDate, setSelectedDate] = useState(null); // select date part
     const navigate = useNavigate();
 
+
+    // try try try try
     const handleSearch = () => {
         const books = [
-            { name: 'Kitap A', available: true },
-            { name: 'Kitap B', available: false, earliestReservationDate: '2024-10-30' },
+            { name: 'Book A', available: true },
+            { name: 'Book B', available: false, earliestReservationDate: '2024-10-30' },
         ];
 
         const foundBook = books.find(book => book.name.toLowerCase() === bookName.toLowerCase());
@@ -26,23 +28,23 @@ const MainPage = () => {
 
     const handleReserve = () => {
         if (selectedDate) {
-            alert(`Rezervasyon yapıldı! Kitap: ${searchResult.name}, Tarih: ${selectedDate.toLocaleDateString()}`);
+            alert(`Reservation made successfully! Book Information: ${searchResult.name}, Date: ${selectedDate.toLocaleDateString()}`);
             // Burada rezervasyon işlemini gerçekleştirebilirsiniz
             // Örneğin, bu bilgiyi bir API'ye gönderin
         } else {
-            alert('Lütfen bir tarih seçin.');
+            alert('Please select a date.');
         }
     };
 
     return (
         <div style={mainPageStyle}>
-            <h1 style={headerStyle}>Hoşgeldin</h1>
+            <h1 style={headerStyle}>Welcome</h1>
             <div style={searchContainerStyle}>
-                <h3>Kitap Arama</h3>
+                <h3>Search for the Book You're Looking For:</h3>
                 <input
                     style={inputStyle}
                     type="text"
-                    placeholder="Kitap adı girin"
+                    placeholder="Please enter book name."
                     value={bookName}
                     onChange={(e) => setBookName(e.target.value)}
                 />
@@ -50,31 +52,31 @@ const MainPage = () => {
 
                 {searchResult !== null && (
                     <div style={resultContainerStyle}>
-                        <h4>Arama Sonucu:</h4>
-                        <p>Kitap Adı: <strong>{searchResult.name}</strong></p>
+                        <h4>Search Result:</h4>
+                        <p>Book Name <strong>{searchResult.name}</strong></p>
                         {searchResult.available ? (
                             <>
                                 <DatePicker
                                     selected={selectedDate}
                                     onChange={(date) => setSelectedDate(date)}
-                                    placeholderText="Tarih Seçin"
+                                    placeholderText="Please select a date."
                                     dateFormat="dd/MM/yyyy"
                                     style={datePickerStyle}
                                 />
-                                <button style={buttonStyle} onClick={handleReserve}>Rezervasyon Yap</button>
+                                <button style={buttonStyle} onClick={handleReserve}>Make a Reservation</button>
                             </>
                         ) : (
-                            <p>Kitap mevcut değil. En erken rezervasyon tarihi: <strong>{searchResult.earliestReservationDate}</strong></p>
+                            <p>The book is not available at the moment, it is with another user. Earliest booking date for you: <strong>{searchResult.earliestReservationDate}</strong></p>
                         )}
                     </div>
                 )}
-                {searchResult === null && bookName && <p>Bu isimde bir kitap bulunamadı.</p>}
+                {searchResult === null && bookName && <p>No book by that name was found.</p>}
             </div>
         </div>
     );
 };
 
-// Stil stilleri
+
 const mainPageStyle = {
     padding: '20px',
     backgroundColor: '#f4f4f4',
