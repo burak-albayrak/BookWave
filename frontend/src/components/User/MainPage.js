@@ -48,7 +48,7 @@ const MainPage = () => {
                     value={bookName}
                     onChange={(e) => setBookName(e.target.value)}
                 />
-                <button style={buttonStyle} onClick={handleSearch}>Ara</button>
+                <button style={buttonStyle} onClick={handleSearch}>Search</button>
 
                 {searchResult !== null && (
                     <div style={resultContainerStyle}>
