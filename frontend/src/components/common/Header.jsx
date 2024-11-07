@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { UserContext } from '../UserContext';
+import { UserContext } from '../../context/UserContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
@@ -8,7 +8,7 @@ const Header = () => {
     const { user } = state || {};
     const navigate = useNavigate();
 
-    // Admin olup olmadığını kontrol et (örneğin, user objesi içinde isAdmin varsa)
+    // admin olup olmadığını kontrol et (örneğin, user objesi içinde isAdmin varsa)
     const isAdmin = user?.isAdmin || false;
 
 

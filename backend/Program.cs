@@ -1,4 +1,6 @@
 using backend.Configs;
+using backend.Repositories;
+using backend.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,34 +10,43 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Database configuration
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<BookWaveContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 0))
+    ));
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+builder.Services.AddScoped<IRepository, Repository>();
+builder.Services.AddScoped<IService, Service>();
+builder.Services.AddScoped<DataImportService>();
 
 builder.Services.AddTransient<DataImportService>();
 
 var app = builder.Build();
 
 // CSV import işlemi
-using (var scope = app.Services.CreateScope())
+try 
 {
-    var services = scope.ServiceProvider;
-    var dataImportService = services.GetRequiredService<DataImportService>();
-
-    try 
-    {
-        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        var dataDirectory = Path.Combine(baseDirectory, "Data");
-        
-        dataImportService.ImportBooks(Path.Combine(dataDirectory, "books.csv"));
-        dataImportService.ImportUsers(Path.Combine(dataDirectory, "users.csv"));
-        dataImportService.ImportRatings(Path.Combine(dataDirectory, "ratings.csv"));
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error importing data: {ex.Message}");
-    }
+    using var scope = app.Services.CreateScope();
+    var importService = scope.ServiceProvider.GetRequiredService<DataImportService>();
+    var dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
+    importService.ImportAll(dataPath);
 }
+catch (Exception ex)
+{
+    Console.WriteLine($"Error importing data: {ex.Message}");
+}
+
+app.UseCors(); 
 
 if (app.Environment.IsDevelopment())
 {

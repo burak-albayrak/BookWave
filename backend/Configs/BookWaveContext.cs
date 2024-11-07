@@ -15,8 +15,22 @@ public class BookWaveContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
-        modelBuilder.Entity<Book>()
-            .HasKey(b => b.ISBN);
+        modelBuilder.Entity<Book>(entity =>
+        {
+            entity.HasKey(e => e.ISBN);
+        
+            entity.Property(e => e.ImageUrlSmall)
+                .HasColumnName("ImageURLSmall");
+            
+            entity.Property(e => e.ImageUrlMedium)
+                .HasColumnName("ImageURLMedium");
+            
+            entity.Property(e => e.ImageUrlLarge)
+                .HasColumnName("ImageURLLarge");
+            
+            entity.Property(e => e.IsAvailable)
+                .HasDefaultValue(true);
+        });
             
         modelBuilder.Entity<Rating>()
             .HasOne(r => r.User)

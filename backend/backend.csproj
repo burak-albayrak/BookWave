@@ -18,14 +18,17 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
     </ItemGroup>
 
+    
     <ItemGroup>
         <None Update="Data\*.csv">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
+    
     <ItemGroup>
-      <Folder Include="Repositories\" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
+    
 
 </Project>

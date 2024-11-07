@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker'; // datepicker for rezervation
 import 'react-datepicker/dist/react-datepicker.css';
 
-const MainPage = () => {
+const GIDICIMainPage = () => {
     const [bookName, setBookName] = useState('');
     const [searchResult, setSearchResult] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null); // select date part
@@ -124,4 +124,4 @@ const datePickerStyle = {
     margin: '10px 0',
 };
 
-export default MainPage;
+export default GIDICIMainPage;

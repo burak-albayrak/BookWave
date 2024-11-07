@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { UserContext } from '../../UserContext';
+import { UserContext } from '../../context/UserContext';
 
 const AdminPage = () => {
     const { state } = useContext(UserContext);
@@ -20,7 +20,6 @@ const AdminPage = () => {
     });
 
 
-    //buraya zaten gerçek veri gelcek
     const [users, setUsers] = useState([
         { id: 1, name: "User One", email: "userone@example.com" },
         { id: 2, name: "User Two", email: "usertwo@example.com" }
@@ -69,7 +68,6 @@ const AdminPage = () => {
         setEditBook({ ...editBook, [name]: value });
     };
 
-    // Add User Form submit handler
     const handleSubmitUser = (e) => {
         e.preventDefault();
         alert('The user added successfully!');

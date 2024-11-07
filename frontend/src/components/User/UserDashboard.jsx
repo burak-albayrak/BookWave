@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
-import { UserContext } from '../../UserContext';
+import { UserContext } from '../../context/UserContext';
 
-const UserPage = () => {
+const UserDashboard = () => {
     const { state } = useContext(UserContext);
     const { user } = state;
 
@@ -36,4 +36,4 @@ const UserPage = () => {
     );
 };
 
-export default UserPage;
+export default UserDashboard;

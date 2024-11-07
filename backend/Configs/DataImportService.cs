@@ -1,8 +1,8 @@
 using System.Globalization;
-using backend.Configs;
-using CsvHelper;
-using backend.Configs;
 using backend.Models;
+using CsvHelper;
+
+namespace backend.Configs;
 
 public class DataImportService
 {
@@ -13,30 +13,49 @@ public class DataImportService
         _context = context;
     }
 
-    public void ImportBooks(string filePath)
+    public void ImportAll(string dataPath)
     {
+        try
+        {
+            ImportBooks(Path.Combine(dataPath, "books.csv"));
+            ImportUsers(Path.Combine(dataPath, "users.csv"));
+            ImportRatings(Path.Combine(dataPath, "ratings.csv"));
+            _context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error importing data: {ex.Message}");
+            throw;
+        }
+    }
+
+    private void ImportBooks(string filePath)
+    {
+        if (_context.Books.Any()) return;
+
         using var reader = new StreamReader(filePath);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
         var records = csv.GetRecords<Book>().ToList();
         _context.Books.AddRange(records);
-        _context.SaveChanges();
     }
 
-    public void ImportUsers(string filePath)
+    private void ImportUsers(string filePath)
     {
+        if (_context.Users.Any()) return;
+
         using var reader = new StreamReader(filePath);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
         var records = csv.GetRecords<User>().ToList();
         _context.Users.AddRange(records);
-        _context.SaveChanges();
     }
 
-    public void ImportRatings(string filePath)
+    private void ImportRatings(string filePath)
     {
+        if (_context.Ratings.Any()) return;
+
         using var reader = new StreamReader(filePath);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
         var records = csv.GetRecords<Rating>().ToList();
         _context.Ratings.AddRange(records);
-        _context.SaveChanges();
     }
 }

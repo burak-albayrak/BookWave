@@ -7,9 +7,9 @@ public class Book
     public string BookAuthor { get; set; }
     public int YearOfPublication { get; set; }
     public string Publisher { get; set; }
-    public string ImageUrlS { get; set; }
-    public string ImageUrlM { get; set; }
-    public string ImageUrlL { get; set; }
-    
+    public string ImageUrlSmall { get; set; }
+    public string ImageUrlMedium { get; set; }
+    public string ImageUrlLarge { get; set; }
+    public bool IsAvailable { get; set; } = true;
     public virtual ICollection<Rating> Ratings { get; set; }
 }
