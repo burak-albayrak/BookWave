@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 const colors = {
     primary: '#4CAF50',    // Main green
     light: '#81C784',      // Light green
-    dark: '#388E3C',       // Dark green
+    dark: '#1B5E20',       // Much darker green
     background: '#F1F8E9',  // Very light green background
     text: '#2E7D32',       // Green text
     white: '#FFFFFF'
@@ -12,7 +12,7 @@ const colors = {
 export const Container = styled.div`
     background-color: ${colors.white};
     border-radius: 20px;
-    box-shadow: 0 14px 28px rgba(76, 175, 80, 0.15);
+    box-shadow: 0 0 40px rgba(76, 175, 80, 0.4);
     position: relative;
     overflow: hidden;
     width: 1000px;
@@ -34,9 +34,16 @@ export const Form = styled.form`
 
 export const Title = styled.h1`
     font-weight: 700;
-    margin: 0 0 15px 0;
-    color: ${colors.text};
-    font-size: 20px;
+    margin: 0 0 7px 0;
+    color: ${colors.white};
+    font-size: 30px;
+`;
+
+export const Title2 = styled.h1`
+    font-weight: 700;
+    margin: 0 0 7px 0;
+    color: ${colors.primary};
+    font-size: 30px;
 `;
 
 
@@ -79,9 +86,12 @@ export const Button = styled.button`
 `;
 
 export const Logo = styled.img`
-    width: 100px;
-    height: auto;
+    width: 150px;
+    height: 150px; 
     margin-bottom: 20px;
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 2px solid ${colors.primary}; 
 `;
 
 export const ErrorText = styled.div`
@@ -164,7 +174,7 @@ export const Overlay = styled.div.attrs(props => ({
     'data-islogin': props.isLogin
 }))`
     background: ${colors.primary};
-    background: linear-gradient(to right, ${colors.light}, ${colors.primary});
+    background: linear-gradient(to right, ${colors.primary}, ${colors.primary});
     color: ${colors.white};
     position: relative;
     left: -100%;
@@ -196,6 +206,11 @@ export const LeftOverlayPanel = styled(OverlayPanel).attrs(props => ({
     'data-islogin': props.isLogin
 }))`
     transform: translateX(-20%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
     ${props => !props.isLogin && css`
         transform: translateX(0);
     `}
@@ -227,15 +242,15 @@ export const Text = styled.p`
     font-weight: 400;
     line-height: 20px;
     letter-spacing: 0.5px;
-    margin: 20px 0 30px;
+    margin: 30px 0 15px;
     color: ${colors.white};
 `;
 
 export const GhostButton = styled.button`
-    background-color: transparent;
-    border: 2px solid ${colors.primary};
+    background-color: ${colors.white};;
+    border: 2px solid ${colors.dark};
     border-radius: 8px;
-    color: ${colors.primary};
+    color: ${colors.dark};
     font-size: 13px;
     font-weight: 600;
     padding: 10px 30px;
@@ -243,11 +258,10 @@ export const GhostButton = styled.button`
     text-transform: uppercase;
     transition: all 0.3s ease;
     margin-top: 15px;
-    margin-left: 100px;
     cursor: pointer;
 
     &:hover {
-        background-color: ${colors.primary};
+        background-color: ${colors.dark};
         color: ${colors.white};
     }
 `;

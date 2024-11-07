@@ -138,7 +138,6 @@ const AuthPage = () => {
         <S.Container>
             <S.SignUpContainer isLogin={isLogin}>
                 <S.Form onSubmit={handleRegisterSubmit}>
-                    <S.Logo src="/logo.png" alt="BookWave Logo" />
                     <S.Title>Create Account</S.Title>
                     <S.Input
                         type="text"
@@ -203,8 +202,8 @@ const AuthPage = () => {
 
             <S.SignInContainer isLogin={isLogin}>
                 <S.Form onSubmit={handleLoginSubmit}>
-                    <S.Logo src="/logo.png" alt="BookWave Logo" />
-                    <S.Title>Sign in to BookWave</S.Title>
+                    <S.Logo src={`${process.env.PUBLIC_URL}/logo.png`} alt="BookWave Logo" />
+                    <S.Title2>Sign in to BookWave</S.Title2>
                     <S.Input
                         type="email"
                         name="email"
@@ -229,6 +228,7 @@ const AuthPage = () => {
             <S.OverlayContainer isLogin={isLogin}>
                 <S.Overlay isLogin={isLogin}>
                     <S.LeftOverlayPanel isLogin={isLogin}>
+                        <S.Logo src={`${process.env.PUBLIC_URL}/logo.png`} alt="BookWave Logo" />
                         <S.Title>Welcome Back!</S.Title>
                         <S.Text>Already have an account? Sign in here</S.Text>
                         <S.GhostButton onClick={() => setIsLogin(true)}>
@@ -237,7 +237,7 @@ const AuthPage = () => {
                     </S.LeftOverlayPanel>
 
                     <S.RightOverlayPanel isLogin={isLogin}>
-                        <S.Title>Hello, Friend!</S.Title>
+                        <S.Title>Hello, Bookworm!</S.Title>
                         <S.Text>Don't have an account? Sign up here</S.Text>
                         <S.GhostButton onClick={() => setIsLogin(false)}>
                             Sign Up

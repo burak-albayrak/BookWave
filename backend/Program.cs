@@ -29,8 +29,6 @@ builder.Services.AddScoped<IRepository, Repository>();
 builder.Services.AddScoped<IService, Service>();
 builder.Services.AddScoped<DataImportService>();
 
-builder.Services.AddTransient<DataImportService>();
-
 var app = builder.Build();
 
 // CSV import işlemi
