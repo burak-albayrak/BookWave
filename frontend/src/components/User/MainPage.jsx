@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { API_URL } from '../../services/api';
+import BookModal from './BookModal';
 
 const MainPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +11,35 @@ const MainPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+    const [selectedBook, setSelectedBook] = useState(null);
+
+    const handleRentBook = async (isbn, startDate, endDate) => {
+        try {
+            const response = await fetch(`${API_URL}/api/book/rent`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    isbn,
+                    userId: user.id, // Assuming you have user context
+                    startDate,
+                    endDate
+                })
+            });
+
+            if (response.ok) {
+                alert('Book rented successfully!');
+                setSelectedBook(null);
+                handleSearch(currentPage); // Refresh the book list
+            } else {
+                alert('Failed to rent the book');
+            }
+        } catch (error) {
+            console.error('Error renting book:', error);
+            alert('Error renting book');
+        }
+    };
 
     const handleSearch = async (page = 1) => {
         if (searchTerm.trim().length < 2) return;
@@ -55,28 +85,41 @@ const MainPage = () => {
             {loading ? (
                 <LoadingText>Loading...</LoadingText>
             ) : (
-                <ResultsSection>
-                    {hasSearched && books.length === 0 ? (
-                        <NoResultsText>
-                            No books found matching "{displayedSearchTerm}"
-                        </NoResultsText>
-                    ) : (
-                        books.map((book) => (
-                            <BookCard key={book.isbn}>
-                                <BookContent>
-                                    {book.imageUrlMedium ? (
-                                        <BookImage src={book.imageUrlMedium} alt={book.bookTitle} />
-                                    ) : (
-                                        <NoImageContainer>No Image Available</NoImageContainer>
-                                    )}
-                                    <BookTitle>{book.bookTitle}</BookTitle>
-                                    <BookAuthor>{book.bookAuthor}</BookAuthor>
-                                </BookContent>
-                                <BookRating rating={book.averageRating} />
-                            </BookCard>
-                        ))
-                    )}
-                </ResultsSection>
+                <>
+                    <ResultsSection>
+                        {hasSearched && books.length > 0 && (
+                            books.map((book) => (
+                                <BookCard key={book.isbn} onClick={() => setSelectedBook(book)}>
+                                    <BookContent>
+                                        {book.imageUrlMedium ? (
+                                            <BookImage src={book.imageUrlMedium} alt={book.bookTitle} />
+                                        ) : (
+                                            <NoImageContainer>No Image Available</NoImageContainer>
+                                        )}
+                                        <BookTitle>{book.bookTitle}</BookTitle>
+                                        <BookAuthor>{book.bookAuthor}</BookAuthor>
+                                    </BookContent>
+                                    <BookRating rating={book.averageRating} />
+                                </BookCard>
+                            ))
+                        )}
+                    </ResultsSection>
+
+                    <ResultsSection2>
+                        {hasSearched && books.length === 0 && (
+                            <NoResultsText2>
+                                No books found matching "{displayedSearchTerm}"
+                            </NoResultsText2>
+                        )}
+                    </ResultsSection2>
+                </>
+            )}
+            {selectedBook && (
+                <BookModal
+                    book={selectedBook}
+                    onClose={() => setSelectedBook(null)}
+                    onRent={handleRentBook}
+                />
             )}
 
             {totalPages > 1 && (
@@ -148,6 +191,14 @@ const SearchButton = styled.button`
 `;
 
 const ResultsSection = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+`;
+
+const ResultsSection2 = styled.div`
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -157,6 +208,7 @@ const ResultsSection = styled.div`
 `;
 
 const BookCard = styled.div`
+    cursor: pointer;
     padding: 1rem;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -262,6 +314,19 @@ const Pagination = styled.div`
 `;
 
 const NoResultsText = styled.p`
+    text-align: center;
+    color: #4CAF50;
+    font-size: 1.2rem;
+    margin: 3rem;
+    padding: 2rem;
+    background-color: #e8f5e9;
+    border-radius: 8px;
+    border: 1px solid #4CAF50;
+    width: 100%;
+    max-width: 600px;
+`;
+
+const NoResultsText2 = styled.p`
     text-align: center;
     color: #4CAF50;
     font-size: 1.2rem;
