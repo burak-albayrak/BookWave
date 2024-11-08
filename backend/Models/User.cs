@@ -10,5 +10,5 @@ public class User
     public DateTime DateOfBirth { get; set; }
     public string Location { get; set; }
     public bool IsAdmin { get; set; }
-    public virtual ICollection<Rating> Ratings { get; set; }
+    public virtual ICollection<Reservation> Reservations { get; set; }
 }

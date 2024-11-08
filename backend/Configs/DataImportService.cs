@@ -55,19 +55,15 @@ public class DataImportService
 
         using var reader = new StreamReader(filePath);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-    
-        // CSV sütun eşleştirmelerini yapılandır
+
         csv.Context.RegisterClassMap<RatingMap>();
-    
         var records = csv.GetRecords<RatingImportDto>().ToList();
-    
+
         var ratings = records.Select(r => new Rating
         {
-            RatingId = r.RatingId,
-            ISBN = r.ISBN,
             UserID = r.UserID,
-            StartDate = r.StartDate,
-            EndDate = r.EndDate
+            ISBN = r.ISBN,
+            BookRating = r.BookRating
         }).ToList();
 
         _context.Ratings.AddRange(ratings);

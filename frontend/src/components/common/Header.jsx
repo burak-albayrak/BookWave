@@ -1,58 +1,135 @@
 import React, { useContext } from 'react';
-import { UserContext } from '../../context/UserContext';
 import { Link, useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import { UserContext } from '../../context/UserContext';
 
 const Header = () => {
-    // UserContext'i kullanarak kullanıcı durumunu alın
-    const { state } = useContext(UserContext) || {};
-    const { user } = state || {};
+    const { state, dispatch } = useContext(UserContext);
     const navigate = useNavigate();
 
-    // admin olup olmadığını kontrol et (örneğin, user objesi içinde isAdmin varsa)
-    const isAdmin = user?.isAdmin || false;
-
-
-    const handleLogoClick = () => {
-        if (user) {
-            navigate('/main');
-        } else {
-            alert("Please login or register first.");
-        }
+    const handleLogout = () => {
+        dispatch({ type: 'LOGOUT' });
+        navigate('/');
     };
 
     return (
-        <header style={headerStyle}>
+        <HeaderContainer>
+            <LeftSection>
+                <BrandName onClick={() => navigate('/main')}>BookWave</BrandName>
+                <NavLink to="/main">Home</NavLink>
+                {state.user && <NavLink to="/user">My Books</NavLink>}
+            </LeftSection>
 
-            <h1 style={titleStyle} onClick={handleLogoClick}>
-                <span style={linkStyle}>BookWave</span>
-            </h1>
+            <RightSection>
+                {state.user?.isAdmin && (
+                    <NavLink to="/admin">Admin Panel</NavLink>
+                )}
 
-            {user && <Link to="/user" style={linkStyle}>User Page</Link>}
-
-            {isAdmin && <Link to="/admin" style={linkStyle}>Admin Page</Link>}
-        </header>
+                {state.user && (
+                    <>
+                        <UserInfo>
+                            <UserAvatar>
+                                {state.user.name[0]}{state.user.surname[0]}
+                            </UserAvatar>
+                            <UserName>{state.user.name} {state.user.surname}</UserName>
+                        </UserInfo>
+                        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+                    </>
+                )}
+            </RightSection>
+        </HeaderContainer>
     );
 };
 
+const HeaderContainer = styled.header`
+    background-color: #ffffff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+`;
 
-const headerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '10px 20px',
-    backgroundColor: '#282c34',
-    color: 'white',
-};
+const BrandName = styled.h1`
+    color: #4CAF50;
+    margin: 0;
+    font-size: 1.8rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s;
 
-const titleStyle = {
-    margin: 0,
-    cursor: 'pointer', // Başlık metni tıklanabilir olacak
-};
+    &:hover {
+        color: #2E7D32;
+    }
+`;
 
-const linkStyle = {
-    color: 'white',
-    textDecoration: 'none',
-    margin: '0 10px',
-};
+const LeftSection = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+`;
+
+const RightSection = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+`;
+
+const NavLink = styled(Link)`
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #e8f5e9;
+        color: #2E7D32;
+    }
+`;
+
+const UserInfo = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+`;
+
+const UserAvatar = styled.div`
+    width: 35px;
+    height: 35px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+`;
+
+const UserName = styled.span`
+    color: #333;
+    font-weight: 500;
+`;
+
+const LogoutButton = styled.button`
+    background-color: transparent;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #4CAF50;
+        color: white;
+    }
+`;
 
 export default Header;

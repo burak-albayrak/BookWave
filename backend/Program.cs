@@ -31,7 +31,7 @@ builder.Services.AddScoped<DataImportService>();
 
 var app = builder.Build();
 
-// CSV import işlemi
+// CSV import 
 try 
 {
     using var scope = app.Services.CreateScope();

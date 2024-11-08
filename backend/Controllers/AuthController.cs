@@ -43,7 +43,7 @@ public class AuthController : ControllerBase
             DateOfBirth = parsedDate,
             Location = request.Location,
             IsAdmin = false,
-            Ratings = new List<Rating>()
+            Reservations = new List<Reservation>()
         };
 
         _context.Users.Add(user);

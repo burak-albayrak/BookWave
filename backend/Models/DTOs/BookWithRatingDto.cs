@@ -1,6 +1,6 @@
-namespace backend.Models;
+namespace backend.Models.DTOs;
 
-public class Book
+public class BookWithRatingDto
 {
     public string ISBN { get; set; }
     public string BookTitle { get; set; }
@@ -10,7 +10,6 @@ public class Book
     public string ImageUrlSmall { get; set; }
     public string ImageUrlMedium { get; set; }
     public string ImageUrlLarge { get; set; }
-    public bool IsAvailable { get; set; } = true;
-    public virtual ICollection<Rating> Ratings { get; set; }
-    public virtual ICollection<Reservation> Reservations { get; set; }
+    public bool IsAvailable { get; set; }
+    public double AverageRating { get; set; }
 }
