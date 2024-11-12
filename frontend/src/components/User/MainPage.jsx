@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
 import { API_URL } from '../../services/api';
 import BookModal from './BookModal';
+import { UserContext } from '../../context/UserContext';
 
 const MainPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -12,32 +13,57 @@ const MainPage = () => {
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
+    const [error, setError] = useState('');
+    const { state, dispatch } = useContext(UserContext);
+    const { user } = state;
 
     const handleRentBook = async (isbn, startDate, endDate) => {
+        console.log('Rent attempt started with:', { isbn, startDate, endDate, userID: user?.userID });
+        console.log('User state when renting:', { user, state });
+
+        if (!user?.userID) {
+            console.log('User context missing:', { state, user }); // Add this debug log
+            const errorMsg = 'Session expired. Please log in again.';
+            alert(errorMsg);
+            // Redirect to login page instead of showing error
+            window.location.href = '/auth';
+            return;
+        }
+
         try {
+            const requestBody = {
+                isbn,
+                userID: user.userID,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString()
+            };
+            console.log('Sending rent request with:', requestBody);
+
             const response = await fetch(`${API_URL}/api/book/rent`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    isbn,
-                    userId: user.id, // Assuming you have user context
-                    startDate,
-                    endDate
-                })
+                body: JSON.stringify(requestBody)
             });
 
-            if (response.ok) {
-                alert('Book rented successfully!');
-                setSelectedBook(null);
-                handleSearch(currentPage); // Refresh the book list
-            } else {
-                alert('Failed to rent the book');
+            const data = await response.json();
+            console.log('Received response:', { status: response.status, data });
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to rent the book');
             }
+
+            setBooks(books.map(book =>
+                book.isbn === isbn ? { ...book, isAvailable: false } : book
+            ));
+
+            alert('Book rented successfully!');
+            setSelectedBook(null);
         } catch (error) {
-            console.error('Error renting book:', error);
-            alert('Error renting book');
+            console.error('Rent error:', error);
+            alert(error.message);
+            setError(error.message);
         }
     };
 
@@ -47,6 +73,7 @@ const MainPage = () => {
         setLoading(true);
         setHasSearched(true);
         setDisplayedSearchTerm(searchTerm);
+
         try {
             const response = await fetch(
                 `${API_URL}/api/book/search/${page}?searchTerm=${encodeURIComponent(searchTerm)}`
@@ -83,36 +110,35 @@ const MainPage = () => {
             </SearchSection>
 
             {loading ? (
-                <LoadingText>Loading...</LoadingText>
+                <LoadingSpinner>Loading...</LoadingSpinner>
             ) : (
-                <>
-                    <ResultsSection>
-                        {hasSearched && books.length > 0 && (
-                            books.map((book) => (
-                                <BookCard key={book.isbn} onClick={() => setSelectedBook(book)}>
-                                    <BookContent>
-                                        {book.imageUrlMedium ? (
-                                            <BookImage src={book.imageUrlMedium} alt={book.bookTitle} />
-                                        ) : (
-                                            <NoImageContainer>No Image Available</NoImageContainer>
-                                        )}
+                <ResultsSection>
+                    {hasSearched && books.length > 0 ? (
+                        books.map((book) => (
+                            <BookCard key={book.isbn} onClick={() => setSelectedBook(book)}>
+                                <BookContent>
+                                    {book.imageUrlMedium ? (
+                                        <BookImage src={book.imageUrlMedium} alt={book.bookTitle} />
+                                    ) : (
+                                        <NoImageContainer>No Image Available</NoImageContainer>
+                                    )}
+                                    <BookInfo>
                                         <BookTitle>{book.bookTitle}</BookTitle>
                                         <BookAuthor>{book.bookAuthor}</BookAuthor>
-                                    </BookContent>
-                                    <BookRating rating={book.averageRating} />
-                                </BookCard>
-                            ))
-                        )}
-                    </ResultsSection>
-
-                    <ResultsSection2>
-                        {hasSearched && books.length === 0 && (
-                            <NoResultsText2>
-                                No books found matching "{displayedSearchTerm}"
-                            </NoResultsText2>
-                        )}
-                    </ResultsSection2>
-                </>
+                                        <StatusBadge available={book.isAvailable.toString()}>
+                                            {book.isAvailable ? 'Available' : 'Not Available'}
+                                        </StatusBadge>
+                                        <BookRating rating={book.averageRating} />
+                                    </BookInfo>
+                                </BookContent>
+                            </BookCard>
+                        ))
+                    ) : hasSearched && (
+                        <NoResultsText>
+                            No books found matching "{displayedSearchTerm}"
+                        </NoResultsText>
+                    )}
+                </ResultsSection>
             )}
             {selectedBook && (
                 <BookModal
@@ -124,13 +150,13 @@ const MainPage = () => {
 
             {totalPages > 1 && (
                 <Pagination>
-                    {Array.from({ length: totalPages }, (_, i) => (
+                    {Array.from({ length: totalPages }, (_, index) => (
                         <PageButton
-                            key={i + 1}
-                            active={currentPage === i + 1}
-                            onClick={() => handleSearch(i + 1)}
+                            key={index + 1}
+                            active={(currentPage === index + 1).toString()}
+                            onClick={() => handleSearch(index + 1)}
                         >
-                            {i + 1}
+                            {index + 1}
                         </PageButton>
                     ))}
                 </Pagination>
@@ -145,6 +171,29 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
+`;
+
+const LoadingSpinner = styled.div`
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+`;
+
+const BookInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+`;
+
+const StatusBadge = styled.span`
+    background-color: ${props => props.available === 'true' ? '#e8f5e9' : '#ffebee'};
+    color: ${props => props.available === 'true' ? '#4CAF50' : '#f44336'};
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin: 0.5rem auto;
+    display: inline-block;
 `;
 
 const Logo = styled.img`
@@ -218,16 +267,19 @@ const BookCard = styled.div`
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 400px;
 
     &:hover {
         transform: translateY(-5px);
     }
 `;
 
+
 const BookContent = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 `;
 
 const BookImage = styled.img`
@@ -249,7 +301,7 @@ const RatingContainer = styled.div`
 `;
 
 const StarIcon = styled.span`
-    color: ${props => props.filled ? '#ffd700' : '#e0e0e0'};
+    color: ${props => props.filled === 'true' ? '#ffd700' : '#e0e0e0'};
     font-size: 1.2rem;
 `;
 
@@ -285,11 +337,11 @@ const BookRating = ({ rating }) => {
     return (
         <RatingContainer>
             {[...Array(Math.min(5, fullStars))].map((_, i) => (
-                <StarIcon key={`full-${i}`} filled>&#9733;</StarIcon>
+                <StarIcon key={`full-${i}`} filled="true">&#9733;</StarIcon>
             ))}
-            {hasHalfStar && <StarIcon filled>&#9734;</StarIcon>}
+            {hasHalfStar && <StarIcon filled="true">&#9734;</StarIcon>}
             {[...Array(emptyStars)].map((_, i) => (
-                <StarIcon key={`empty-${i}`}>&#9734;</StarIcon>
+                <StarIcon key={`empty-${i}`} filled="false">&#9734;</StarIcon>
             ))}
             <RatingText>({rating.toFixed(1)})</RatingText>
         </RatingContainer>
@@ -342,13 +394,13 @@ const NoResultsText2 = styled.p`
 const PageButton = styled.button`
     padding: 0.5rem 1rem;
     border: 1px solid #4CAF50;
-    background-color: ${props => props.active ? '#4CAF50' : 'white'};
-    color: ${props => props.active ? 'white' : '#4CAF50'};
+    background-color: ${props => props.active === 'true' ? '#4CAF50' : 'white'};
+    color: ${props => props.active === 'true' ? 'white' : '#4CAF50'};
     border-radius: 4px;
     cursor: pointer;
 
     &:hover {
-        background-color: ${props => props.active ? '#2E7D32' : '#e8f5e9'};
+        background-color: ${props => props.active === 'true' ? '#2E7D32' : '#e8f5e9'};
     }
 `;
 

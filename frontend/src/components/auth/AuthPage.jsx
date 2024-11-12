@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../../context/UserContext';
 import * as S from '../../assets/styles/AuthStyles';
 import CircularProgress from '@mui/material/CircularProgress';
 import { API_URL } from '../../services/api';
 
 const AuthPage = () => {
     const navigate = useNavigate();
+    const { dispatch } = useContext(UserContext);
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -50,27 +52,19 @@ const AuthPage = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    email: loginData.email,
-                    password: loginData.password
-                })
+                body: JSON.stringify(loginData)
             });
 
             const data = await response.json();
 
-            if (response.ok) {
-                // Store user data in context or localStorage if needed
-                if (data.isAdmin) {
-                    navigate('/admin');
-                } else {
-                    navigate('/main');
-                }
-            } else {
-                setError(data.message || 'Login failed');
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed');
             }
+
+            dispatch({ type: 'SET_USER', payload: data });
+            navigate('/main');
         } catch (err) {
-            console.error('Login error:', err);
-            setError('Network error occurred');
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -185,11 +179,13 @@ const AuthPage = () => {
                         value={registerData.dateOfBirth}
                         onChange={handleRegisterChange}
                         required
+                        placeholder="Date of Birth"
+                        title="Please enter your date of birth"
                     />
                     <S.Input
                         type="text"
                         name="location"
-                        placeholder="Location"
+                        placeholder="Address"
                         value={registerData.location}
                         onChange={handleRegisterChange}
                         required

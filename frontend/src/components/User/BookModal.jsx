@@ -4,14 +4,51 @@ import styled from 'styled-components';
 const BookModal = ({ book, onClose, onRent }) => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleRent = async () => {
+    const validateDates = () => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         if (!startDate || !endDate) {
-            alert('Please select both start and end dates');
-            return;
+            setError('Please select both start and end dates');
+            return false;
         }
 
-        await onRent(book.isbn, startDate, endDate);
+        if (start < today) {
+            setError('Start date cannot be in the past');
+            return false;
+        }
+
+        if (end <= start) {
+            setError('End date must be after start date');
+            return false;
+        }
+
+        const daysDifference = (end - start) / (1000 * 60 * 60 * 24);
+        if (daysDifference > 30) {
+            setError('Maximum rental period is 30 days');
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleRent = async () => {
+        setError('');
+        if (!validateDates()) return;
+
+        setLoading(true);
+        try {
+            await onRent(book.isbn, startDate, endDate);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -21,10 +58,14 @@ const BookModal = ({ book, onClose, onRent }) => {
                 <BookDetails>
                     <ImageSection>
                         {book.imageUrlLarge || book.imageUrlMedium ? (
-                            <BookImage src={book.imageUrlLarge || book.imageUrlMedium} alt={book.bookTitle} />
+                            <BookImage
+                                src={book.imageUrlLarge || book.imageUrlMedium}
+                                alt={book.bookTitle}
+                            />
                         ) : (
                             <NoImageContainer>No Image Available</NoImageContainer>
                         )}
+                        <RatingDisplay rating={book.averageRating} />
                     </ImageSection>
 
                     <InfoSection>
@@ -34,8 +75,9 @@ const BookModal = ({ book, onClose, onRent }) => {
                             <InfoItem><Label>Publisher:</Label> {book.publisher}</InfoItem>
                             <InfoItem><Label>Year:</Label> {book.yearOfPublication}</InfoItem>
                             <InfoItem><Label>ISBN:</Label> {book.isbn}</InfoItem>
-                            <InfoItem><Label>Status:</Label>
-                                <StatusBadge available={book.isAvailable}>
+                            <InfoItem>
+                                <Label>Status:</Label>
+                                <StatusBadge available={book.isAvailable.toString()}>
                                     {book.isAvailable ? 'Available' : 'Not Available'}
                                 </StatusBadge>
                             </InfoItem>
@@ -44,12 +86,19 @@ const BookModal = ({ book, onClose, onRent }) => {
                         {book.isAvailable && (
                             <RentalSection>
                                 <h3>Rent this Book</h3>
+                                {error && (
+                                    <ErrorMessage>
+                                        <ErrorIcon>⚠️</ErrorIcon>
+                                        {error}
+                                    </ErrorMessage>
+                                )}
                                 <DateInput
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
                                     min={new Date().toISOString().split('T')[0]}
                                     placeholder="Start Date"
+                                    disabled={loading}
                                 />
                                 <DateInput
                                     type="date"
@@ -57,8 +106,14 @@ const BookModal = ({ book, onClose, onRent }) => {
                                     onChange={(e) => setEndDate(e.target.value)}
                                     min={startDate || new Date().toISOString().split('T')[0]}
                                     placeholder="End Date"
+                                    disabled={!startDate || loading}
                                 />
-                                <RentButton onClick={handleRent}>Rent Book</RentButton>
+                                <RentButton
+                                    onClick={handleRent}
+                                    disabled={loading || !startDate || !endDate}
+                                >
+                                    {loading ? 'Processing...' : 'Rent Book'}
+                                </RentButton>
                             </RentalSection>
                         )}
                     </InfoSection>
@@ -67,6 +122,44 @@ const BookModal = ({ book, onClose, onRent }) => {
         </ModalOverlay>
     );
 };
+
+const RatingDisplay = ({ rating }) => {
+    if (!rating || rating === 0) return null;
+
+    return (
+        <RatingContainer>
+            <StarContainer>
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} filled={(star <= Math.round(rating)).toString()}>
+                        ★
+                    </Star>
+                ))}
+            </StarContainer>
+            <RatingText>({rating.toFixed(1)})</RatingText>
+        </RatingContainer>
+    );
+};
+
+const RatingContainer = styled.div`
+    margin-top: 1rem;
+    text-align: center;
+`;
+
+const StarContainer = styled.div`
+    display: inline-flex;
+    gap: 2px;
+`;
+
+const Star = styled.span`
+    color: ${props => props.filled ? '#ffc107' : '#e4e5e9'};
+    font-size: 1.2rem;
+`;
+
+const RatingText = styled.span`
+    margin-left: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+`;
 
 const ModalOverlay = styled.div`
     position: fixed;
@@ -79,6 +172,22 @@ const ModalOverlay = styled.div`
     justify-content: center;
     align-items: center;
     z-index: 1000;
+`;
+
+const ErrorMessage = styled.div`
+    color: #d32f2f;
+    margin: 8px 0;
+    padding: 12px;
+    background-color: #ffebee;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ef5350;
+`;
+
+const ErrorIcon = styled.span`
+    margin-right: 8px;
 `;
 
 const ModalContent = styled.div`
@@ -160,8 +269,8 @@ const Label = styled.span`
 `;
 
 const StatusBadge = styled.span`
-    background-color: ${props => props.available ? '#e8f5e9' : '#ffebee'};
-    color: ${props => props.available ? '#4CAF50' : '#f44336'};
+    background-color: ${props => props.available === 'true' ? '#e8f5e9' : '#ffebee'};
+    color: ${props => props.available === 'true' ? '#4CAF50' : '#f44336'};
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
     font-size: 0.9rem;
@@ -200,16 +309,17 @@ const DateInput = styled.input`
 const RentButton = styled.button`
     width: 100%;
     padding: 1rem;
-    background-color: #4CAF50;
+    background-color: ${props => props.disabled ? '#cccccc' : '#4CAF50'};
     color: white;
     border: none;
     border-radius: 4px;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     font-size: 1.1rem;
     margin-top: 1rem;
+    transition: background-color 0.3s ease;
 
     &:hover {
-        background-color: #45a049;
+        background-color: ${props => props.disabled ? '#cccccc' : '#45a049'};
     }
 `;
 

@@ -25,16 +25,17 @@ const Header = () => {
                     <NavLink to="/admin">Admin Panel</NavLink>
                 )}
 
+                {state.user && !state.user.isAdmin && (
+                    <ProfileLink to="/profile">
+                        <UserAvatar>
+                            {state.user.name[0]}{state.user.surname[0]}
+                        </UserAvatar>
+                        <span>Profile</span>
+                    </ProfileLink>
+                )}
+
                 {state.user && (
-                    <>
-                        <UserInfo>
-                            <UserAvatar>
-                                {state.user.name[0]}{state.user.surname[0]}
-                            </UserAvatar>
-                            <UserName>{state.user.name} {state.user.surname}</UserName>
-                        </UserInfo>
-                        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-                    </>
+                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
                 )}
             </RightSection>
         </HeaderContainer>
@@ -53,6 +54,18 @@ const HeaderContainer = styled.header`
     z-index: 1000;
 `;
 
+const LeftSection = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+`;
+
+const RightSection = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+`;
+
 const BrandName = styled.h1`
     color: #4CAF50;
     margin: 0;
@@ -64,18 +77,6 @@ const BrandName = styled.h1`
     &:hover {
         color: #2E7D32;
     }
-`;
-
-const LeftSection = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-`;
-
-const RightSection = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
 `;
 
 const NavLink = styled(Link)`
@@ -92,10 +93,19 @@ const NavLink = styled(Link)`
     }
 `;
 
-const UserInfo = styled.div`
+const ProfileLink = styled(Link)`
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    color: #4CAF50;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #e8f5e9;
+    }
 `;
 
 const UserAvatar = styled.div`
@@ -111,17 +121,12 @@ const UserAvatar = styled.div`
     font-size: 0.9rem;
 `;
 
-const UserName = styled.span`
-    color: #333;
-    font-weight: 500;
-`;
-
 const LogoutButton = styled.button`
-    background-color: transparent;
-    color: #4CAF50;
+    background: none;
     border: 1px solid #4CAF50;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    color: #4CAF50;
+    padding: 8px 16px;
+    border-radius: 20px;
     cursor: pointer;
     font-weight: 500;
     transition: all 0.2s;

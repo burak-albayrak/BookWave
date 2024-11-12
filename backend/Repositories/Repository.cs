@@ -45,6 +45,26 @@ public class Repository : IRepository
 
         return booksWithRatings;
     }
+    
+    public async Task<IEnumerable<Reservation>> GetUserActiveReservations(int userId)
+    {
+        return await _context.Reservations
+            .Where(r => r.UserID == userId && r.EndDate >= DateTime.Today)
+            .Include(r => r.Book)
+            .OrderByDescending(r => r.StartDate)
+            .ToListAsync();
+    }
+    
+    public async Task<bool> HasReservationConflict(string isbn, DateTime startDate, DateTime endDate)
+    {
+        return await _context.Reservations
+            .Where(r => r.ISBN == isbn)
+            .AnyAsync(r => 
+                    (startDate >= r.StartDate && startDate <= r.EndDate) || // New start date falls within existing reservation
+                    (endDate >= r.StartDate && endDate <= r.EndDate) || // New end date falls within existing reservation
+                    (startDate <= r.StartDate && endDate >= r.EndDate) // New reservation completely encompasses existing one
+            );
+    }
 
     public async Task<int> GetSearchResultCount(string searchTerm)
     {
@@ -119,9 +139,16 @@ public class Repository : IRepository
 
     public async Task<IEnumerable<Book>> GetUserBooks(int userId)
     {
-        return await _context.Books
-            .Where(b => b.Ratings.Any(r => r.UserID == userId))
+        var activeReservations = await _context.Reservations
+            .Where(r => r.UserID == userId && r.EndDate >= DateTime.Today)
+            .Include(r => r.Book)
             .ToListAsync();
+
+        return activeReservations
+            .Select(r => r.Book)
+            .Where(b => b != null)
+            .Distinct()
+            .ToList();
     }
 
     public async Task<bool> UpdateBookStatus(string isbn, bool isAvailable)

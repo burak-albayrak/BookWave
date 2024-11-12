@@ -9,6 +9,8 @@ public interface IRepository
     Task<int> GetSearchResultCount(string searchTerm);
     Task<Book> GetBookById(string isbn);
     Task<double> GetBookAverageRating(string isbn);
+    Task<IEnumerable<Reservation>> GetUserActiveReservations(int userId);
+    Task<bool> HasReservationConflict(string isbn, DateTime startDate, DateTime endDate);
     Task<bool> CreateReservation(string isbn, int userId, DateTime startDate, DateTime endDate);
     Task<bool> CreateRating(string isbn, int userId, int bookRating);
     Task<IEnumerable<Book>> GetUserBooks(int userId);

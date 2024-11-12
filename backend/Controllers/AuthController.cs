@@ -52,6 +52,33 @@ public class AuthController : ControllerBase
         user.Password = null;
         return Ok(user);
     }
+    
+    [HttpPut("update/{id}")]
+    public async Task<ActionResult<User>> UpdateUser(int id, UpdateUserRequest request)
+    {
+        var user = await _context.Users.FindAsync(id);
+    
+        if (user == null)
+        {
+            return NotFound("User not found");
+        }
+
+        if (!string.IsNullOrEmpty(request.Name))
+            user.Name = request.Name;
+        if (!string.IsNullOrEmpty(request.Surname))
+            user.Surname = request.Surname;
+        if (!string.IsNullOrEmpty(request.Email))
+            user.Email = request.Email;
+        if (!string.IsNullOrEmpty(request.Location))
+            user.Location = request.Location;
+        if (!string.IsNullOrEmpty(request.Password))
+            user.Password = request.Password;
+
+        await _context.SaveChangesAsync();
+    
+        user.Password = null; // Don't send password back
+        return Ok(user);
+    }
 
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
