@@ -1,6 +1,7 @@
 using backend.Models;
 using backend.Models.DTOs;
 using backend.Repositories;
+using backend.Validations;
 
 namespace backend.Services;
 
@@ -13,14 +14,14 @@ public class Service : IService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm, int skip, int take)
+    public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm, BookSortOption? sortOption, bool? isAvailable, int skip, int take)
     {
-        return await _repository.SearchBooks(searchTerm, skip, take);
+        return await _repository.SearchBooks(searchTerm, sortOption, isAvailable, skip, take);
     }
 
-    public async Task<int> GetSearchResultCount(string searchTerm)
+    public async Task<int> GetSearchResultCount(string searchTerm, bool? isAvailable)
     {
-        return await _repository.GetSearchResultCount(searchTerm);
+        return await _repository.GetSearchResultCount(searchTerm, isAvailable);
     }
 
 

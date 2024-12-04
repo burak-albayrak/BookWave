@@ -1,6 +1,7 @@
 using backend.Configs;
 using backend.Models;
 using backend.Models.DTOs;
+using backend.Validations;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Repositories;
@@ -14,37 +15,64 @@ public class Repository : IRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm, int skip, int take)
+public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm, BookSortOption? sortOption, bool? isAvailable, int skip, int take)
+{
+    var query = _context.Books.AsQueryable();
+
+    // Filtreleme
+    if (!string.IsNullOrEmpty(searchTerm))
     {
-        var books = await _context.Books
-            .Where(b => b.BookTitle.Contains(searchTerm) || 
-                        b.BookAuthor.Contains(searchTerm) ||
-                        b.Publisher.Contains(searchTerm))
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync();
-
-        var booksWithRatings = new List<BookWithRatingDto>();
-        foreach (var book in books)
-        {
-            var averageRating = await GetBookAverageRating(book.ISBN);
-            booksWithRatings.Add(new BookWithRatingDto
-            {
-                ISBN = book.ISBN,
-                BookTitle = book.BookTitle,
-                BookAuthor = book.BookAuthor,
-                YearOfPublication = book.YearOfPublication,
-                Publisher = book.Publisher,
-                ImageUrlSmall = book.ImageUrlSmall,
-                ImageUrlMedium = book.ImageUrlMedium,
-                ImageUrlLarge = book.ImageUrlLarge,
-                IsAvailable = book.IsAvailable,
-                AverageRating = averageRating
-            });
-        }
-
-        return booksWithRatings;
+        query = query.Where(b => b.BookTitle.Contains(searchTerm) || 
+                                b.BookAuthor.Contains(searchTerm) ||
+                                b.Publisher.Contains(searchTerm));
     }
+
+    if (isAvailable.HasValue)
+    {
+        query = query.Where(b => b.IsAvailable == isAvailable.Value);
+    }
+
+    // Önce tüm kitapları çekelim
+    var allBooks = await query.ToListAsync();
+    var booksWithRatings = new List<BookWithRatingDto>();
+
+    // Her kitap için rating hesaplayalım
+    foreach (var book in allBooks)
+    {
+        var averageRating = await GetBookAverageRating(book.ISBN);
+        booksWithRatings.Add(new BookWithRatingDto
+        {
+            ISBN = book.ISBN,
+            BookTitle = book.BookTitle,
+            BookAuthor = book.BookAuthor,
+            YearOfPublication = book.YearOfPublication,
+            Publisher = book.Publisher,
+            ImageUrlSmall = book.ImageUrlSmall,
+            ImageUrlMedium = book.ImageUrlMedium,
+            ImageUrlLarge = book.ImageUrlLarge,
+            IsAvailable = book.IsAvailable,
+            AverageRating = averageRating
+        });
+    }
+
+    // Sıralama
+    if (sortOption.HasValue)
+    {
+        booksWithRatings = sortOption.Value switch
+        {
+            BookSortOption.TitleAsc => booksWithRatings.OrderBy(b => b.BookTitle).ToList(),
+            BookSortOption.TitleDesc => booksWithRatings.OrderByDescending(b => b.BookTitle).ToList(),
+            BookSortOption.RatingAsc => booksWithRatings.OrderBy(b => b.AverageRating).ToList(),
+            BookSortOption.RatingDesc => booksWithRatings.OrderByDescending(b => b.AverageRating).ToList(),
+            BookSortOption.AvailabilityAsc => booksWithRatings.OrderBy(b => b.IsAvailable).ToList(),
+            BookSortOption.AvailabilityDesc => booksWithRatings.OrderByDescending(b => b.IsAvailable).ToList(),
+            _ => booksWithRatings
+        };
+    }
+
+    // En son sayfalama
+    return booksWithRatings.Skip(skip).Take(take);
+}
     
     public async Task<IEnumerable<Reservation>> GetUserActiveReservations(int userId)
     {
@@ -66,13 +94,23 @@ public class Repository : IRepository
             );
     }
 
-    public async Task<int> GetSearchResultCount(string searchTerm)
+    public async Task<int> GetSearchResultCount(string searchTerm, bool? isAvailable)
     {
-        return await _context.Books
-            .Where(b => b.BookTitle.Contains(searchTerm) || 
-                        b.BookAuthor.Contains(searchTerm) ||
-                        b.Publisher.Contains(searchTerm))
-            .CountAsync();
+        var query = _context.Books.AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(b => b.BookTitle.Contains(searchTerm) || 
+                                     b.BookAuthor.Contains(searchTerm) ||
+                                     b.Publisher.Contains(searchTerm));
+        }
+
+        if (isAvailable.HasValue)
+        {
+            query = query.Where(b => b.IsAvailable == isAvailable.Value);
+        }
+
+        return await query.CountAsync();
     }
 
     public async Task<Book> GetBookById(string isbn)

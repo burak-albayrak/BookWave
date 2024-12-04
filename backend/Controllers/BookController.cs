@@ -26,22 +26,26 @@ public class BookController : ControllerBase
     }
 
     [HttpGet("search/{page}")]
-    public async Task<ActionResult<PaginationRequestModel<BookWithRatingDto>>> SearchBooks([FromQuery] string searchTerm, int page)
+    public async Task<ActionResult<PaginationRequestModel<BookWithRatingDto>>> SearchBooks(
+        [FromQuery] string searchTerm, 
+        [FromQuery] BookSortOption? sortOption,
+        [FromQuery] bool? isAvailable,
+        int page)
     {
         var searchValidation = new SearchValidation();
         var pageValidation = new PageValidation();
 
-        if (!searchValidation.ValidateSearchTerm(searchTerm))
+        if (!string.IsNullOrEmpty(searchTerm) && !searchValidation.ValidateSearchTerm(searchTerm))
             return BadRequest("Invalid search term");
-    
+
         if (!pageValidation.ValidatePage(page))
             return BadRequest("Invalid page number");
 
         var skip = pageValidation.CalculateSkip(page);
         var take = pageValidation.GetPageSize();
 
-        var books = await _repository.SearchBooks(searchTerm, skip, take);
-        var totalCount = await _repository.GetSearchResultCount(searchTerm);
+        var books = await _repository.SearchBooks(searchTerm, sortOption, isAvailable, skip, take);
+        var totalCount = await _repository.GetSearchResultCount(searchTerm, isAvailable);
 
         return Ok(new PaginationRequestModel<BookWithRatingDto>
         {
@@ -87,36 +91,51 @@ public class BookController : ControllerBase
     [HttpPost("rent")]
     public async Task<ActionResult> RentBook([FromBody] RentBookRequest request)
     {
-        Console.WriteLine($"Received rent request for ISBN: {request.ISBN}, UserID: {request.UserID}");
-        Console.WriteLine($"Dates: {request.StartDate} to {request.EndDate}");
-
         try 
         {
-            var success = await _service.RentBook(
-                request.ISBN,
-                request.UserID,  // Add this missing parameter
-                request.StartDate,
-                request.EndDate
-            );
-
-            Console.WriteLine($"Rent operation result: {success}");
-
-            if (success)
+            // Verify address exists and belongs to user
+            var address = await _context.Addresses
+                .FirstOrDefaultAsync(a => a.AddressID == request.AddressID && a.UserID == request.UserID);
+            if (address == null)
             {
-                return Ok(new { message = "Book rented successfully" });
+                return BadRequest("Invalid address selected");
             }
-        
-            return BadRequest(new { message = "Failed to rent the book" });
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Validation error: {ex.Message}");
-            return BadRequest(new { message = ex.Message });
+
+            // Verify credit card exists and belongs to user
+            var card = await _context.CreditCards
+                .FirstOrDefaultAsync(c => c.CardID == request.CardID && c.UserID == request.UserID);
+            if (card == null)
+            {
+                return BadRequest("Invalid credit card selected");
+            }
+
+            // Check if book is available
+            var book = await _context.Books
+                .FirstOrDefaultAsync(b => b.ISBN == request.ISBN && b.IsAvailable);
+            if (book == null)
+            {
+                return BadRequest("Book is not available for reservation");
+            }
+
+            var reservation = new Reservation
+            {
+                ISBN = request.ISBN,
+                UserID = request.UserID,
+                AddressID = request.AddressID,
+                CardID = request.CardID,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate
+            };
+
+            book.IsAvailable = false;
+            _context.Reservations.Add(reservation);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Book reserved successfully" });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Unexpected error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred while processing your request" });
+            return StatusCode(500, new { message = "Error reserving book", error = ex.Message });
         }
     }
 

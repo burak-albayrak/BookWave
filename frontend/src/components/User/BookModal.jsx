@@ -55,7 +55,13 @@ const BookModal = ({ book, onClose, onRent }) => {
 
         setLoading(true);
         try {
-            await onRent(book.isbn, startDate, endDate, selectedAddress.addressID, selectedCard.cardID);
+            await onRent(
+                book.isbn,
+                startDate,
+                endDate,
+                selectedAddress.addressID,
+                selectedCard.cardID
+            );
         } catch (err) {
             setError(err.message);
         } finally {
@@ -108,10 +114,22 @@ const BookModal = ({ book, onClose, onRent }) => {
                     <InfoSection>
                         <BookTitle>{book.bookTitle}</BookTitle>
                         <BookInfo>
-                            <InfoItem><Label>Author:</Label> {book.bookAuthor}</InfoItem>
-                            <InfoItem><Label>Publisher:</Label> {book.publisher}</InfoItem>
-                            <InfoItem><Label>Year:</Label> {book.yearOfPublication}</InfoItem>
-                            <InfoItem><Label>ISBN:</Label> {book.isbn}</InfoItem>
+                            <InfoItem>
+                                <Label>Author:</Label>
+                                {book.bookAuthor}
+                            </InfoItem>
+                            <InfoItem>
+                                <Label>Publisher:</Label>
+                                {book.publisher}
+                            </InfoItem>
+                            <InfoItem>
+                                <Label>Year:</Label>
+                                {book.yearOfPublication}
+                            </InfoItem>
+                            <InfoItem>
+                                <Label>ISBN:</Label>
+                                {book.isbn}
+                            </InfoItem>
                             <InfoItem>
                                 <Label>Status:</Label>
                                 <StatusBadge available={book.isAvailable.toString()}>
@@ -119,8 +137,9 @@ const BookModal = ({ book, onClose, onRent }) => {
                                 </StatusBadge>
                             </InfoItem>
                         </BookInfo>
+                    </InfoSection>
 
-                        {book.isAvailable && (
+                    {book.isAvailable && (
                             <RentalSection>
                                 <h3>Rent this Book</h3>
                                 <FormGroup>
@@ -193,7 +212,6 @@ const BookModal = ({ book, onClose, onRent }) => {
                                 </RentButton>
                             </RentalSection>
                         )}
-                    </InfoSection>
                 </BookDetails>
             </ModalContent>
         </ModalOverlay>
@@ -252,11 +270,12 @@ const ModalOverlay = styled.div`
 `;
 
 const ErrorMessage = styled.div`
+    grid-column: 1 / -1;
     color: #d32f2f;
     margin: 8px 0;
-    padding: 12px;
+    padding: 1rem;
     background-color: #ffebee;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
@@ -269,13 +288,14 @@ const ErrorIcon = styled.span`
 
 const ModalContent = styled.div`
     background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    max-width: 800px;
-    width: 90%;
+    padding: 2.5rem;
+    border-radius: 12px;
+    max-width: 1200px;  
+    width: 95%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 `;
 
 const CloseButton = styled.button`
@@ -290,12 +310,17 @@ const CloseButton = styled.button`
 `;
 
 const BookDetails = styled.div`
-    display: flex;
+    display: grid;
+    grid-template-columns: 300px 1fr 400px;
     gap: 2rem;
     margin-top: 1rem;
 
+    @media (max-width: 1200px) {
+        grid-template-columns: 300px 1fr;
+    }
+
     @media (max-width: 768px) {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 `;
 
@@ -308,6 +333,13 @@ const ImageSection = styled.div`
 
 const InfoSection = styled.div`
     flex: 1;
+    padding-right: 2rem;
+    border-right: 1px solid #e0e0e0;
+
+    @media (max-width: 1200px) {
+        border-right: none;
+        padding-right: 0;
+    }
 `;
 
 const BookImage = styled.img`
@@ -338,11 +370,15 @@ const BookInfo = styled.div`
 const InfoItem = styled.p`
     margin: 0.5rem 0;
     font-size: 1.1rem;
+    color: #333;
+    display: flex;
+    align-items: center;
 `;
 
 const Label = styled.span`
-    font-weight: bold;
-    color: #666;
+    font-weight: 600;
+    margin-right: 0.75rem;
+    min-width: 80px;
 `;
 
 const StatusBadge = styled.span`
@@ -355,8 +391,21 @@ const StatusBadge = styled.span`
 `;
 
 const RentalSection = styled.div`
-    border-top: 1px solid #e0e0e0;
-    padding-top: 1rem;
+    padding: 1.5rem;
+    background: #f8f8f8;
+    border-radius: 12px;
+    height: fit-content;
+
+    h3 {
+        color: #2E7D32;
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 1200px) {
+        grid-column: 1 / -1;
+        margin-top: 2rem;
+    }
 `;
 
 const NoImageContainer = styled.div`
@@ -377,39 +426,54 @@ const NoImageContainer = styled.div`
 const Select = styled.select`
     width: 100%;
     padding: 0.75rem;
-    margin: 0.5rem 0;
-    border: 1px solid #4CAF50;
-    border-radius: 4px;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
     font-size: 1rem;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+        outline: none;
+        border-color: #2E7D32;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
 `;
 
 const FormGroup = styled.div`
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 `;
 
 const DateInput = styled.input`
     width: 100%;
     padding: 0.75rem;
-    margin: 0.5rem 0;
-    border: 1px solid #4CAF50;
-    border-radius: 4px;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
     font-size: 1rem;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+        outline: none;
+        border-color: #2E7D32;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
 `;
 
 const RentButton = styled.button`
-    width: 100%;
+    grid-column: 1 / -1;
     padding: 1rem;
     background-color: ${props => props.disabled ? '#cccccc' : '#4CAF50'};
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     font-size: 1.1rem;
-    margin-top: 1rem;
+    font-weight: 600;
     transition: background-color 0.3s ease;
+    margin-top: 1rem;
 
     &:hover {
-        background-color: ${props => props.disabled ? '#cccccc' : '#45a049'};
+        background-color: ${props => props.disabled ? '#cccccc' : '#2E7D32'};
     }
 `;
 

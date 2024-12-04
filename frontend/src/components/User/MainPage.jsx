@@ -13,19 +13,19 @@ const MainPage = () => {
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
+    const [sortOption, setSortOption] = useState('');
+    const [isAvailable, setIsAvailable] = useState(null);
     const [error, setError] = useState('');
-    const { state, dispatch } = useContext(UserContext);
+    const { state } = useContext(UserContext);
     const { user } = state;
 
-    const handleRentBook = async (isbn, startDate, endDate) => {
-        console.log('Rent attempt started with:', { isbn, startDate, endDate, userID: user?.userID });
-        console.log('User state when renting:', { user, state });
+    const handleRentBook = async (isbn, startDate, endDate, addressID, cardID) => {
+        console.log('Rent attempt started with:', { isbn, startDate, endDate, addressID, cardID, userID: user?.userID });
 
         if (!user?.userID) {
-            console.log('User context missing:', { state, user }); // Add this debug log
+            console.log('User context missing:', { state, user });
             const errorMsg = 'Session expired. Please log in again.';
             alert(errorMsg);
-            // Redirect to login page instead of showing error
             window.location.href = '/auth';
             return;
         }
@@ -34,6 +34,8 @@ const MainPage = () => {
             const requestBody = {
                 isbn,
                 userID: user.userID,
+                addressID,
+                cardID,
                 startDate: new Date(startDate).toISOString(),
                 endDate: new Date(endDate).toISOString()
             };
@@ -75,9 +77,17 @@ const MainPage = () => {
         setDisplayedSearchTerm(searchTerm);
 
         try {
-            const response = await fetch(
-                `${API_URL}/api/book/search/${page}?searchTerm=${encodeURIComponent(searchTerm)}`
-            );
+            let url = `${API_URL}/api/book/search/${page}?searchTerm=${encodeURIComponent(searchTerm)}`;
+
+            if (sortOption) {
+                url += `&sortOption=${sortOption}`;
+            }
+
+            if (isAvailable !== null) {
+                url += `&isAvailable=${isAvailable}`;
+            }
+
+            const response = await fetch(url);
             const data = await response.json();
 
             if (response.ok) {
@@ -87,6 +97,7 @@ const MainPage = () => {
             }
         } catch (error) {
             console.error('Search error:', error);
+            setError('An error occurred while searching');
         } finally {
             setLoading(false);
         }
@@ -108,6 +119,30 @@ const MainPage = () => {
                     Search
                 </SearchButton>
             </SearchSection>
+            <FilterSection>
+                <Select
+                    value={sortOption}
+                    onChange={(e) => {
+                        setSortOption(e.target.value);
+                    }}
+                >
+                    <option value="">Sort by...</option>
+                    <option value="TitleAsc">Title (A-Z)</option>
+                    <option value="TitleDesc">Title (Z-A)</option>
+                    <option value="RatingAsc">Rating (Low to High)</option>
+                    <option value="RatingDesc">Rating (High to Low)</option>
+                    <option value="AvailabilityAsc">Availability (Not Available First)</option>
+                    <option value="AvailabilityDesc">Availability (Available First)</option>
+                </Select>
+                <FilterButton
+                    active={isAvailable === true}
+                    onClick={() => {
+                        setIsAvailable(isAvailable === true ? null : true);
+                    }}
+                >
+                    Available Only
+                </FilterButton>
+            </FilterSection>
 
             {loading ? (
                 <LoadingSpinner>Loading...</LoadingSpinner>
@@ -391,6 +426,42 @@ const NoResultsText2 = styled.p`
     max-width: 600px;
 `;
 
+const FilterSection = styled.div`
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    justify-content: center;
+    width: 100%;
+    max-width: 600px;
+`;
+
+const Select = styled.select`
+    padding: 0.5rem;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+        border-color: #2E7D32;
+    }
+`;
+
+const FilterButton = styled.button`
+    padding: 0.5rem 1rem;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    background-color: ${props => props.active ? '#4CAF50' : 'white'};
+    color: ${props => props.active ? 'white' : '#4CAF50'};
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: ${props => props.active ? '#2E7D32' : '#e8f5e9'};
+    }
+`;
+
 const PageButton = styled.button`
     padding: 0.5rem 1rem;
     border: 1px solid #4CAF50;
@@ -402,12 +473,6 @@ const PageButton = styled.button`
     &:hover {
         background-color: ${props => props.active === 'true' ? '#2E7D32' : '#e8f5e9'};
     }
-`;
-
-const LoadingText = styled.p`
-    color: #666;
-    font-size: 1.1rem;
-    margin: 2rem 0;
 `;
 
 export default MainPage;

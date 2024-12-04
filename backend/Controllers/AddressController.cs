@@ -51,7 +51,7 @@ public class AddressController : ControllerBase
 
         if (address == null)
         {
-            return NotFound("Address not found");
+            return NotFound("Addresses not found");
         }
 
         address.AddressName = request.AddressName;
