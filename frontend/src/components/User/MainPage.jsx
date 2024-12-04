@@ -103,6 +103,61 @@ const MainPage = () => {
         }
     };
 
+    const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+        const pageRange = 2; // Her yönde kaç sayfa gösterileceği
+        const totalVisible = pageRange * 2 + 1;
+
+        let startPage = Math.max(1, currentPage - pageRange);
+        let endPage = Math.min(totalPages, currentPage + pageRange);
+
+        // Sayfa aralığını dengele
+        if (endPage - startPage + 1 < totalVisible) {
+            if (startPage === 1) {
+                endPage = Math.min(totalPages, startPage + totalVisible - 1);
+            } else {
+                startPage = Math.max(1, endPage - totalVisible + 1);
+            }
+        }
+
+        const pages = [];
+
+        if (startPage > 1) {
+            pages.push(
+                <PageButton key={1} onClick={() => onPageChange(1)}>
+                    1
+                </PageButton>
+            );
+            if (startPage > 2) {
+                pages.push(<Ellipsis key="ellipsis1">...</Ellipsis>);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(
+                <PageButton
+                    key={i}
+                    active={(currentPage === i).toString()}
+                    onClick={() => onPageChange(i)}
+                >
+                    {i}
+                </PageButton>
+            );
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pages.push(<Ellipsis key="ellipsis2">...</Ellipsis>);
+            }
+            pages.push(
+                <PageButton key={totalPages} onClick={() => onPageChange(totalPages)}>
+                    {totalPages}
+                </PageButton>
+            );
+        }
+
+        return <PaginationContainer>{pages}</PaginationContainer>;
+    };
+
     return (
         <Container>
             <Logo src="/logo.png" alt="BookWave Logo" />
@@ -160,9 +215,9 @@ const MainPage = () => {
                                     <BookInfo>
                                         <BookTitle>{book.bookTitle}</BookTitle>
                                         <BookAuthor>{book.bookAuthor}</BookAuthor>
-                                        <StatusBadge available={book.isAvailable.toString()}>
+                                        <AvailabilityBadge isAvailable={book.isAvailable}>
                                             {book.isAvailable ? 'Available' : 'Not Available'}
-                                        </StatusBadge>
+                                        </AvailabilityBadge>
                                         <BookRating rating={book.averageRating} />
                                     </BookInfo>
                                 </BookContent>
@@ -184,17 +239,11 @@ const MainPage = () => {
             )}
 
             {totalPages > 1 && (
-                <Pagination>
-                    {Array.from({ length: totalPages }, (_, index) => (
-                        <PageButton
-                            key={index + 1}
-                            active={(currentPage === index + 1).toString()}
-                            onClick={() => handleSearch(index + 1)}
-                        >
-                            {index + 1}
-                        </PageButton>
-                    ))}
-                </Pagination>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => handleSearch(page)}
+                />
             )}
         </Container>
     );
@@ -282,33 +331,35 @@ const ResultsSection = styled.div`
     max-width: 1200px;
 `;
 
-const ResultsSection2 = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 2rem;
-    width: 100%;
-    max-width: 1200px;
-`;
-
 const BookCard = styled.div`
-    cursor: pointer;
-    padding: 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    text-align: center;
-    transition: transform 0.2s;
-    background-color: white;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 400px;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 200px;
+    position: relative;
+    transition: transform 0.2s;
+    background: white;
 
     &:hover {
         transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 `;
 
+const AvailabilityBadge = styled.div`
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: ${props => props.isAvailable ? '#4CAF50' : '#f44336'};
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    z-index: 1;
+`;
 
 const BookContent = styled.div`
     flex: 1;
@@ -413,19 +464,6 @@ const NoResultsText = styled.p`
     max-width: 600px;
 `;
 
-const NoResultsText2 = styled.p`
-    text-align: center;
-    color: #4CAF50;
-    font-size: 1.2rem;
-    margin: 3rem auto;
-    padding: 2rem;
-    background-color: #e8f5e9;
-    border-radius: 8px;
-    border: 1px solid #4CAF50;
-    width: 100%;
-    max-width: 600px;
-`;
-
 const FilterSection = styled.div`
     display: flex;
     gap: 1rem;
@@ -433,6 +471,20 @@ const FilterSection = styled.div`
     justify-content: center;
     width: 100%;
     max-width: 600px;
+`;
+
+const PaginationContainer = styled.div`
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+`;
+
+const Ellipsis = styled.span`
+    color: #4CAF50;
+    padding: 0 0.5rem;
 `;
 
 const Select = styled.select`
@@ -465,10 +517,12 @@ const FilterButton = styled.button`
 const PageButton = styled.button`
     padding: 0.5rem 1rem;
     border: 1px solid #4CAF50;
+    border-radius: 4px;
     background-color: ${props => props.active === 'true' ? '#4CAF50' : 'white'};
     color: ${props => props.active === 'true' ? 'white' : '#4CAF50'};
-    border-radius: 4px;
     cursor: pointer;
+    transition: all 0.2s;
+    min-width: 40px;
 
     &:hover {
         background-color: ${props => props.active === 'true' ? '#2E7D32' : '#e8f5e9'};
