@@ -19,7 +19,4 @@ public class RegisterRequest
     
     [Required]
     public string DateOfBirth { get; set; }
-    
-    [Required]
-    public string Location { get; set; }
 }

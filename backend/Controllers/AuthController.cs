@@ -41,7 +41,6 @@ public class AuthController : ControllerBase
             Email = request.Email,
             Password = request.Password,
             DateOfBirth = parsedDate,
-            Location = request.Location,
             IsAdmin = false,
             Reservations = new List<Reservation>()
         };
@@ -69,8 +68,6 @@ public class AuthController : ControllerBase
             user.Surname = request.Surname;
         if (!string.IsNullOrEmpty(request.Email))
             user.Email = request.Email;
-        if (!string.IsNullOrEmpty(request.Location))
-            user.Location = request.Location;
         if (!string.IsNullOrEmpty(request.Password))
             user.Password = request.Password;
 
@@ -101,5 +98,31 @@ public class AuthController : ControllerBase
             IsAdmin = user.IsAdmin,
             Message = "Login successful"
         });
+    }
+    
+    [HttpPut("change-password/{id}")]
+    public async Task<ActionResult> ChangePassword(int id, UpdatePasswordRequest request)
+    {
+        var user = await _context.Users.FindAsync(id);
+    
+        if (user == null)
+        {
+            return NotFound("User not found");
+        }
+
+        if (user.Password != request.CurrentPassword)
+        {
+            return BadRequest("Current password is incorrect");
+        }
+
+        if (request.NewPassword != request.ConfirmNewPassword)
+        {
+            return BadRequest("New passwords do not match");
+        }
+
+        user.Password = request.NewPassword;
+        await _context.SaveChangesAsync();
+    
+        return Ok(new { message = "Password updated successfully" });
     }
 }

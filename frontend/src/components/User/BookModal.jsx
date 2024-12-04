@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
+import { API_URL } from '../../services/api';
+import { UserContext } from '../../context/UserContext';
 
 const BookModal = ({ book, onClose, onRent }) => {
+    const { state } = useContext(UserContext);
+    const { user } = state;
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [userAddresses, setUserAddresses] = useState([]);
+    const [userCreditCards, setUserCreditCards] = useState([]);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [selectedCard, setSelectedCard] = useState(null);
 
     const validateDates = () => {
         const start = new Date(startDate);
@@ -40,16 +48,45 @@ const BookModal = ({ book, onClose, onRent }) => {
     const handleRent = async () => {
         setError('');
         if (!validateDates()) return;
+        if (!selectedAddress || !selectedCard) {
+            setError('Please select both delivery address and payment method');
+            return;
+        }
 
         setLoading(true);
         try {
-            await onRent(book.isbn, startDate, endDate);
+            await onRent(book.isbn, startDate, endDate, selectedAddress.addressID, selectedCard.cardID);
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!user?.userID) return;
+
+            try {
+                const [addressesRes, cardsRes] = await Promise.all([
+                    fetch(`${API_URL}/api/address/user/${user.userID}`),
+                    fetch(`${API_URL}/api/creditcard/user/${user.userID}`)
+                ]);
+
+                if (addressesRes.ok && cardsRes.ok) {
+                    const addresses = await addressesRes.json();
+                    const cards = await cardsRes.json();
+                    setUserAddresses(addresses);
+                    setUserCreditCards(cards);
+                }
+            } catch (err) {
+                console.error('Error fetching user data:', err);
+                setError('Failed to load user data');
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
 
     return (
         <ModalOverlay>
@@ -86,31 +123,71 @@ const BookModal = ({ book, onClose, onRent }) => {
                         {book.isAvailable && (
                             <RentalSection>
                                 <h3>Rent this Book</h3>
+                                <FormGroup>
+                                    <Label>Start Date</Label>
+                                    <DateInput
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        min={new Date().toISOString().split('T')[0]}
+                                    />
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label>End Date</Label>
+                                    <DateInput
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        min={startDate || new Date().toISOString().split('T')[0]}
+                                    />
+                                </FormGroup>
+
+                                <FormGroup>
+                                    <Label>Delivery Address</Label>
+                                    <Select
+                                        value={selectedAddress?.addressID || ''}
+                                        onChange={(e) => {
+                                            const address = userAddresses.find(a => a.addressID === parseInt(e.target.value));
+                                            setSelectedAddress(address);
+                                        }}
+                                    >
+                                        <option value="">Select delivery address</option>
+                                        {userAddresses.map(address => (
+                                            <option key={address.addressID} value={address.addressID}>
+                                                {address.addressName} - {address.city}, {address.district}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </FormGroup>
+
+                                <FormGroup>
+                                    <Label>Payment Method</Label>
+                                    <Select
+                                        value={selectedCard?.cardID || ''}
+                                        onChange={(e) => {
+                                            const card = userCreditCards.find(c => c.cardID === parseInt(e.target.value));
+                                            setSelectedCard(card);
+                                        }}
+                                    >
+                                        <option value="">Select payment method</option>
+                                        {userCreditCards.map(card => (
+                                            <option key={card.cardID} value={card.cardID}>
+                                                {card.cardName} - **** {card.cardNumber.slice(-4)}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </FormGroup>
+
                                 {error && (
                                     <ErrorMessage>
                                         <ErrorIcon>⚠️</ErrorIcon>
                                         {error}
                                     </ErrorMessage>
                                 )}
-                                <DateInput
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    min={new Date().toISOString().split('T')[0]}
-                                    placeholder="Start Date"
-                                    disabled={loading}
-                                />
-                                <DateInput
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    min={startDate || new Date().toISOString().split('T')[0]}
-                                    placeholder="End Date"
-                                    disabled={!startDate || loading}
-                                />
+
                                 <RentButton
                                     onClick={handleRent}
-                                    disabled={loading || !startDate || !endDate}
+                                    disabled={loading || !startDate || !endDate || !selectedAddress || !selectedCard}
                                 >
                                     {loading ? 'Processing...' : 'Rent Book'}
                                 </RentButton>
@@ -295,6 +372,19 @@ const NoImageContainer = styled.div`
     font-size: 0.9rem;
     text-align: center;
     padding: 0 10px;
+`;
+
+const Select = styled.select`
+    width: 100%;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    font-size: 1rem;
+`;
+
+const FormGroup = styled.div`
+    margin-bottom: 1rem;
 `;
 
 const DateInput = styled.input`

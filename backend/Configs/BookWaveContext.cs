@@ -11,6 +11,8 @@ public class BookWaveContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Rating> Ratings { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<Address> Addresses { get; set; }
+    public DbSet<CreditCard> CreditCards { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +46,24 @@ public class BookWaveContext : DbContext
             entity.HasOne(r => r.Book)
                 .WithMany(b => b.Reservations)
                 .HasForeignKey(r => r.ISBN)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<Address>(entity =>
+        {
+            entity.HasKey(e => e.AddressID);
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Addresses)
+                .HasForeignKey(e => e.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<CreditCard>(entity =>
+        {
+            entity.HasKey(e => e.CardID);
+            entity.HasOne(e => e.User)
+                .WithOne(u => u.CreditCard)
+                .HasForeignKey<CreditCard>(e => e.UserID)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

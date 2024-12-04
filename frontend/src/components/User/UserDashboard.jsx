@@ -32,6 +32,14 @@ const UserDashboard = () => {
         fetchUserBooks();
     }, [user]);
 
+    const calculateRemainingDays = (endDate) => {
+        const end = new Date(endDate);
+        const today = new Date();
+        const diffTime = end - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    };
+
     return (
         <Container>
             <Title>My Books</Title>
@@ -40,30 +48,39 @@ const UserDashboard = () => {
             ) : error ? (
                 <ErrorMessage>{error}</ErrorMessage>
             ) : currentBooks.length > 0 ? (
-                <BookGrid>
-                    {currentBooks.map((book) => (
-                        <BookCard key={book.isbn}>
-                            <BookImage
-                                src={book.imageUrlMedium || '/placeholder-book.png'}
-                                alt={book.bookTitle}
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = '/placeholder-book.png';
-                                }}
-                            />
-                            <BookDetails>
-                                <BookTitle>{book.bookTitle}</BookTitle>
-                                <BookAuthor>by {book.bookAuthor}</BookAuthor>
-                                <BookInfo>
-                                    <InfoLabel>Publisher:</InfoLabel> {book.publisher}
-                                </BookInfo>
-                                <BookInfo>
-                                    <InfoLabel>Year:</InfoLabel> {book.yearOfPublication}
-                                </BookInfo>
-                            </BookDetails>
-                        </BookCard>
-                    ))}
-                </BookGrid>
+                <BookList>
+                    {currentBooks.map((book) => {
+                        const remainingDays = calculateRemainingDays(book.endDate);
+                        return (
+                            <BookListItem key={book.isbn}>
+                                <BookImage
+                                    src={book.imageUrlSmall || '/placeholder-book.png'}
+                                    alt={book.bookTitle}
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = '/placeholder-book.png';
+                                    }}
+                                />
+                                <BookDetails>
+                                    <BookTitle>{book.bookTitle}</BookTitle>
+                                    <BookAuthor>by {book.bookAuthor}</BookAuthor>
+                                    <BookInfo>
+                                        <InfoLabel>Publisher:</InfoLabel> {book.publisher}
+                                    </BookInfo>
+                                    <RentalInfo>
+                                        <RentalDates>
+                                            <InfoLabel>Rental Period:</InfoLabel>
+                                            {new Date(book.startDate).toLocaleDateString()} - {new Date(book.endDate).toLocaleDateString()}
+                                        </RentalDates>
+                                        <RemainingDays status={remainingDays <= 3 ? 'warning' : 'normal'}>
+                                            {remainingDays} days remaining
+                                        </RemainingDays>
+                                    </RentalInfo>
+                                </BookDetails>
+                            </BookListItem>
+                        );
+                    })}
+                </BookList>
             ) : (
                 <EmptyMessage>You don't have any books currently borrowed.</EmptyMessage>
             )}
@@ -73,66 +90,106 @@ const UserDashboard = () => {
 
 const Container = styled.div`
     padding: 2rem;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
 `;
 
 const Title = styled.h2`
-    color: #333;
+    color: #4CAF50;
     margin-bottom: 2rem;
     text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 1rem;
+
+    &:after {
+        content: '';
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 3px;
+        background: linear-gradient(to right, #4CAF50, #81c784);
+        border-radius: 2px;
+    }
 `;
 
-const BookGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2rem;
+const BookList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+`;
+
+const BookListItem = styled.div`
+    display: flex;
+    background: linear-gradient(to right, #f8fff8, white);
+    border-radius: 16px;
+    box-shadow: 0 10px 20px rgba(76, 175, 80, 0.1);
     padding: 1rem;
-`;
-
-const BookCard = styled.div`
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
-    transition: transform 0.2s;
+    gap: 1.5rem;
+    border: 1px solid rgba(76, 175, 80, 0.1);
+    transition: transform 0.2s ease;
 
     &:hover {
-        transform: translateY(-5px);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(76, 175, 80, 0.15);
     }
 `;
 
 const BookImage = styled.img`
-    width: 100%;
-    height: 300px;
+    width: 100px;
+    height: 150px;
     object-fit: cover;
+    border-radius: 4px;
 `;
 
 const BookDetails = styled.div`
-    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 `;
 
 const BookTitle = styled.h3`
     margin: 0;
     color: #333;
     font-size: 1.2rem;
-    margin-bottom: 0.5rem;
 `;
 
 const BookAuthor = styled.p`
     color: #666;
-    margin: 0 0 1rem 0;
+    margin: 0.25rem 0;
     font-style: italic;
 `;
 
 const BookInfo = styled.p`
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+`;
+
+const RentalInfo = styled.div`
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+`;
+
+const RentalDates = styled.div`
+    font-size: 0.9rem;
+`;
+
+const RemainingDays = styled.div`
+    color: ${props => props.status === 'warning' ? '#f44336' : '#4CAF50'};
+    font-weight: bold;
     font-size: 0.9rem;
 `;
 
 const InfoLabel = styled.span`
     font-weight: bold;
     color: #555;
+    margin-right: 0.5rem;
 `;
 
 const LoadingMessage = styled.p`

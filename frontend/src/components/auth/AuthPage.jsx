@@ -23,8 +23,7 @@ const AuthPage = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        dateOfBirth: '',
-        location: ''
+        dateOfBirth: ''
     });
 
     const handleLoginChange = (e) => {
@@ -82,14 +81,12 @@ const AuthPage = () => {
         }
 
         try {
-            // Tarih formatını yyyy-MM-dd olarak gönder
             const formData = {
                 name: registerData.name,
                 surname: registerData.surname,
                 email: registerData.email,
                 password: registerData.password,
-                dateOfBirth: registerData.dateOfBirth, // HTML date input zaten yyyy-MM-dd formatında
-                location: registerData.location || ''
+                dateOfBirth: registerData.dateOfBirth
             };
 
             console.log('Sending data:', formData); // Debug için
@@ -117,8 +114,7 @@ const AuthPage = () => {
                 email: '',
                 password: '',
                 confirmPassword: '',
-                dateOfBirth: '',
-                location: ''
+                dateOfBirth: ''
             });
         } catch (err) {
             console.error('Full error:', err);
@@ -181,14 +177,6 @@ const AuthPage = () => {
                         required
                         placeholder="Date of Birth"
                         title="Please enter your date of birth"
-                    />
-                    <S.Input
-                        type="text"
-                        name="location"
-                        placeholder="Address"
-                        value={registerData.location}
-                        onChange={handleRegisterChange}
-                        required
                     />
                     <S.Button type="submit" disabled={loading}>
                         {loading ? <CircularProgress size={24} /> : 'Sign Up'}

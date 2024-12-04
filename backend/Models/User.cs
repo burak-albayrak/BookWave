@@ -8,7 +8,8 @@ public class User
     public string Email { get; set; }
     public string Password { get; set; }
     public DateTime DateOfBirth { get; set; }
-    public string Location { get; set; }
     public bool IsAdmin { get; set; }
     public virtual ICollection<Reservation> Reservations { get; set; }
+    public virtual ICollection<Address> Addresses { get; set; }
+    public virtual CreditCard CreditCard { get; set; }
 }
