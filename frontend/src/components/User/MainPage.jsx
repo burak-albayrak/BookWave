@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { API_URL } from '../../services/api';
 import BookModal from './BookModal';
 import { UserContext } from '../../context/UserContext';
+import LoadingSpinner from "../../assets/styles/LoadingSpinner";
 
 const MainPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -200,7 +201,7 @@ const MainPage = () => {
             </FilterSection>
 
             {loading ? (
-                <LoadingSpinner>Loading...</LoadingSpinner>
+                <LoadingSpinner />
             ) : (
                 <ResultsSection>
                     {hasSearched && books.length > 0 ? (
@@ -255,12 +256,6 @@ const Container = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-`;
-
-const LoadingSpinner = styled.div`
-    text-align: center;
-    padding: 2rem;
-    color: #666;
 `;
 
 const BookInfo = styled.div`

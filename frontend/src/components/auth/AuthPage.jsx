@@ -4,6 +4,7 @@ import { UserContext } from '../../context/UserContext';
 import * as S from '../../assets/styles/AuthStyles';
 import CircularProgress from '@mui/material/CircularProgress';
 import { API_URL } from '../../services/api';
+import styled from "styled-components";
 
 const AuthPage = () => {
     const navigate = useNavigate();
@@ -15,6 +16,15 @@ const AuthPage = () => {
     const [loginData, setLoginData] = useState({
         email: '',
         password: ''
+    });
+
+    const [inputErrors, setInputErrors] = useState({
+        name: '',
+        surname: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        dateOfBirth: ''
     });
 
     const [registerData, setRegisterData] = useState({
@@ -73,9 +83,56 @@ const AuthPage = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setInputErrors({});
+
+        const birthDate = new Date(registerData.dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        if (birthDate > today) {
+            setInputErrors(prev => ({
+                ...prev,
+                dateOfBirth: 'Date of birth cannot be in the future'
+            }));
+            setLoading(false);
+            return;
+        }
+
+        if (age < 12) {
+            setInputErrors(prev => ({
+                ...prev,
+                dateOfBirth: 'You must be at least 12 years old to register'
+            }));
+            setLoading(false);
+            return;
+        }
+
+        if (age > 100) {
+            setInputErrors(prev => ({
+                ...prev,
+                dateOfBirth: 'Invalid date of birth'
+            }));
+            setLoading(false);
+            return;
+        }
 
         if (registerData.password !== registerData.confirmPassword) {
-            setError('Passwords do not match');
+            setInputErrors({
+                confirmPassword: 'Passwords do not match'
+            });
+            setLoading(false);
+            return;
+        }
+
+        if (registerData.password !== registerData.confirmPassword) {
+            setInputErrors({
+                confirmPassword: 'Passwords do not match'
+            });
             setLoading(false);
             return;
         }
@@ -89,8 +146,6 @@ const AuthPage = () => {
                 dateOfBirth: registerData.dateOfBirth
             };
 
-            console.log('Sending data:', formData); // Debug için
-
             const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
@@ -102,7 +157,20 @@ const AuthPage = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data || 'Registration failed');
+                if (data.errors && Array.isArray(data.errors)) {
+                    const newInputErrors = {};
+                    data.errors.forEach(error => {
+                        if (error.includes('Name')) newInputErrors.name = error;
+                        if (error.includes('Surname')) newInputErrors.surname = error;
+                        if (error.includes('Email')) newInputErrors.email = error;
+                        if (error.includes('Password')) newInputErrors.password = error;
+                    });
+                    setInputErrors(newInputErrors);
+                } else {
+                    setError(['Registration failed. Please try again.']);
+                }
+                setLoading(false);
+                return;
             }
 
             setIsLogin(true);
@@ -118,7 +186,7 @@ const AuthPage = () => {
             });
         } catch (err) {
             console.error('Full error:', err);
-            setError(err.message || 'Network error occurred');
+            setError(['Network error occurred. Please try again.']);
         } finally {
             setLoading(false);
         }
@@ -128,56 +196,89 @@ const AuthPage = () => {
         <S.Container>
             <S.SignUpContainer isLogin={isLogin}>
                 <S.Form onSubmit={handleRegisterSubmit}>
-                    <S.Title>Create Account</S.Title>
-                    <S.Input
-                        type="text"
-                        name="name"
-                        placeholder="Name"
-                        value={registerData.name}
-                        onChange={handleRegisterChange}
-                        required
-                    />
-                    <S.Input
-                        type="text"
-                        name="surname"
-                        placeholder="Surname"
-                        value={registerData.surname}
-                        onChange={handleRegisterChange}
-                        required
-                    />
-                    <S.Input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={registerData.email}
-                        onChange={handleRegisterChange}
-                        required
-                    />
-                    <S.Input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={registerData.password}
-                        onChange={handleRegisterChange}
-                        required
-                    />
-                    <S.Input
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="Confirm Password"
-                        value={registerData.confirmPassword}
-                        onChange={handleRegisterChange}
-                        required
-                    />
-                    <S.Input
-                        type="date"
-                        name="dateOfBirth"
-                        value={registerData.dateOfBirth}
-                        onChange={handleRegisterChange}
-                        required
-                        placeholder="Date of Birth"
-                        title="Please enter your date of birth"
-                    />
+                    <S.Title2>Create Account</S.Title2>
+
+                    {error && Array.isArray(error) && error.length > 0 && (
+                        <ErrorList>
+                            {error.map((err, index) => (
+                                <ErrorItem key={index}>{err}</ErrorItem>
+                            ))}
+                        </ErrorList>
+                    )}
+                    <S.InputContainer>
+                        <S.Input
+                            type="text"
+                            name="name"
+                            placeholder="Name"
+                            value={registerData.name}
+                            onChange={handleRegisterChange}
+                            required
+                        />
+                        {inputErrors.name && <S.InputError>{inputErrors.name}</S.InputError>}
+                    </S.InputContainer>
+
+                    <S.InputContainer>
+                        <S.Input
+                            type="text"
+                            name="surname"
+                            placeholder="Surname"
+                            value={registerData.surname}
+                            onChange={handleRegisterChange}
+                            required
+                        />
+                        {inputErrors.surname && <S.InputError>{inputErrors.surname}</S.InputError>}
+                    </S.InputContainer>
+
+                    <S.InputContainer>
+                        <S.Input
+                            type="email"
+                            name="email"
+                            placeholder="Email"
+                            value={registerData.email}
+                            onChange={handleRegisterChange}
+                            required
+                        />
+                        {inputErrors.email && <S.InputError>{inputErrors.email}</S.InputError>}
+                    </S.InputContainer>
+
+                    <S.InputContainer>
+                        <S.Input
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            value={registerData.password}
+                            onChange={handleRegisterChange}
+                            required
+                        />
+                        {inputErrors.password && <S.InputError>{inputErrors.password}</S.InputError>}
+                    </S.InputContainer>
+
+                    <S.InputContainer>
+                        <S.Input
+                            type="password"
+                            name="confirmPassword"
+                            placeholder="Confirm Password"
+                            value={registerData.confirmPassword}
+                            onChange={handleRegisterChange}
+                            required
+                        />
+                        {inputErrors.confirmPassword && <S.InputError>{inputErrors.confirmPassword}</S.InputError>}
+                    </S.InputContainer>
+
+                    <S.InputContainer>
+                        <S.Input
+                            type="date"
+                            name="dateOfBirth"
+                            value={registerData.dateOfBirth}
+                            onChange={handleRegisterChange}
+                            required
+                            max={new Date().toISOString().split('T')[0]}
+                            min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]} // 100 yıl öncesine kadar seçilebilir
+                            placeholder="Date of Birth"
+                            title="Please enter your date of birth"
+                        />
+                        {inputErrors.dateOfBirth && <S.InputError>{inputErrors.dateOfBirth}</S.InputError>}
+                    </S.InputContainer>
                     <S.Button type="submit" disabled={loading}>
                         {loading ? <CircularProgress size={24} /> : 'Sign Up'}
                     </S.Button>
@@ -234,5 +335,27 @@ const AuthPage = () => {
         </S.Container>
     );
 };
+
+const ErrorList = styled.ul`
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    color: #f44336;
+    background-color: #ffebee;
+    border-radius: 4px;
+    padding: 10px;
+`;
+
+const ErrorItem = styled.li`
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    
+    &:before {
+        content: "•";
+        margin-right: 8px;
+        color: #f44336;
+    }
+`;
 
 export default AuthPage;

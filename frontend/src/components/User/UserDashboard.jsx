@@ -2,13 +2,49 @@ import React, { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../../context/UserContext';
 import styled from 'styled-components';
 import { API_URL } from '../../services/api';
+import LoadingSpinner from "../../assets/styles/LoadingSpinner";
+import {ModalOverlay} from "../../modals/PaymentAndAddressModals";
 
 const UserDashboard = () => {
-    const { state } = useContext(UserContext);
-    const { user } = state;
+    const { state: { user } } = useContext(UserContext);
     const [currentBooks, setCurrentBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [selectedBookForRating, setSelectedBookForRating] = useState(null);
+    const [rating, setRating] = useState(0);
+    const [bookRatings, setBookRatings] = useState(() => {
+        const savedRatings = localStorage.getItem(`userRatings_${user?.userID}`);
+        return savedRatings ? JSON.parse(savedRatings) : {};
+    });
+
+    const handleRateBook = (isbn) => {
+        setSelectedBookForRating(isbn);
+        setRating(bookRatings[isbn] || 0);
+        setShowRatingModal(true);
+    };
+
+
+    const calculateRemainingDays = (endDate) => {
+        const today = new Date();
+        const due = new Date(endDate);
+        const diffTime = due - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    };
+
+    const submitRating = () => {
+        const newRatings = {
+            ...bookRatings,
+            [selectedBookForRating]: rating
+        };
+        setBookRatings(newRatings);
+        localStorage.setItem(`userRatings_${user?.userID}`, JSON.stringify(newRatings));
+        setShowRatingModal(false);
+        setSelectedBookForRating(null);
+        alert('Rating submitted successfully!');
+    };
+
 
     useEffect(() => {
         const fetchUserBooks = async () => {
@@ -32,61 +68,83 @@ const UserDashboard = () => {
         fetchUserBooks();
     }, [user]);
 
-    const calculateRemainingDays = (endDate) => {
-        const end = new Date(endDate);
-        const today = new Date();
-        const diffTime = end - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
-    };
-
     return (
         <Container>
             <Title>My Books</Title>
             {loading ? (
-                <LoadingMessage>Loading your books...</LoadingMessage>
+                <LoadingSpinner />
             ) : error ? (
                 <ErrorMessage>{error}</ErrorMessage>
-            ) : currentBooks.length > 0 ? (
-                <BookList>
-                    {currentBooks.map((book) => {
-                        const remainingDays = calculateRemainingDays(book.endDate);
-                        return (
-                            <BookListItem key={book.isbn}>
-                                <BookImage
-                                    src={book.imageUrlSmall || '/placeholder-book.png'}
-                                    alt={book.bookTitle}
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = '/placeholder-book.png';
-                                    }}
-                                />
-                                <BookDetails>
-                                    <BookTitle>{book.bookTitle}</BookTitle>
-                                    <BookAuthor>by {book.bookAuthor}</BookAuthor>
-                                    <BookInfo>
-                                        <InfoLabel>Publisher:</InfoLabel> {book.publisher}
-                                    </BookInfo>
-                                    <RentalInfo>
-                                        <RentalDates>
-                                            <InfoLabel>Rental Period:</InfoLabel>
-                                            {new Date(book.startDate).toLocaleDateString()} - {new Date(book.endDate).toLocaleDateString()}
-                                        </RentalDates>
-                                        <RemainingDays status={remainingDays <= 3 ? 'warning' : 'normal'}>
-                                            {remainingDays} days remaining
-                                        </RemainingDays>
-                                    </RentalInfo>
-                                </BookDetails>
-                            </BookListItem>
-                        );
-                    })}
-                </BookList>
             ) : (
-                <EmptyMessage>You don't have any books currently borrowed.</EmptyMessage>
+                <BookList>
+                    {currentBooks.map((book) => (
+                        <BookListItem key={book.isbn}>
+                            <BookImage src={book.imageUrlMedium || book.imageUrlSmall} alt={book.bookTitle} />
+                            <BookDetails>
+                                <BookTitle>{book.bookTitle}</BookTitle>
+                                <BookAuthor>{book.bookAuthor}</BookAuthor>
+                                <RentalDates>
+                                    <p>Start Date: {new Date(book.startDate).toLocaleDateString()}</p>
+                                    <p>Due Date: {new Date(book.endDate).toLocaleDateString()}</p>
+                                    <RemainingDays>
+                                        Remaining: {calculateRemainingDays(book.endDate)} days
+                                    </RemainingDays>
+                                </RentalDates>
+                                {bookRatings[book.isbn] && (
+                                    <RatingContainer>
+                                        <RatingLabel>Your Rating:</RatingLabel>
+                                        <StarContainer>
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star key={star} filled={(star <= bookRatings[book.isbn]).toString()}>
+                                                    ★
+                                                </Star>
+                                            ))}
+                                        </StarContainer>
+                                    </RatingContainer>
+                                )}
+                                <RateButton onClick={() => handleRateBook(book.isbn)}>
+                                    {bookRatings[book.isbn] ? 'Update Rating' : 'Rate this Book'}
+                                </RateButton>
+                            </BookDetails>
+                        </BookListItem>
+                    ))}
+                </BookList>
+            )}
+
+            {showRatingModal && (
+                <RatingModal
+                    onClose={() => setShowRatingModal(false)}
+                    onSubmit={submitRating}
+                    rating={rating}
+                    setRating={setRating}
+                />
             )}
         </Container>
     );
 };
+
+const RatingContainer = styled.div`
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+`;
+
+const StarContainer = styled.div`
+    display: inline-flex;
+    gap: 2px;
+`;
+
+const Star = styled.span`
+    color: ${props => props.filled === 'true' ? '#ffc107' : '#e4e5e9'};
+    font-size: 1.2rem;
+`;
+
+const RatingText = styled.span`
+    margin-left: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+`;
 
 const Container = styled.div`
     padding: 2rem;
@@ -116,28 +174,43 @@ const Title = styled.h2`
     }
 `;
 
+const RatingLabel = styled.span`
+    color: #666;
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    font-weight: 500;
+`;
+
 const BookList = styled.div`
     display: flex;
     flex-direction: column;
     gap: 1rem;
 `;
 
-const BookListItem = styled.div`
-    display: flex;
-    background: linear-gradient(to right, #f8fff8, white);
-    border-radius: 16px;
-    box-shadow: 0 10px 20px rgba(76, 175, 80, 0.1);
-    padding: 1rem;
-    gap: 1.5rem;
-    border: 1px solid rgba(76, 175, 80, 0.1);
-    transition: transform 0.2s ease;
+const RateButton = styled.button`
+    padding: 0.75rem 1.5rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    width: fit-content;
 
     &:hover {
+        background-color: #2E7D32;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(76, 175, 80, 0.15);
+        box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: none;
     }
 `;
-
 const BookImage = styled.img`
     width: 100px;
     height: 150px;
@@ -160,43 +233,66 @@ const BookTitle = styled.h3`
 
 const BookAuthor = styled.p`
     color: #666;
-    margin: 0.25rem 0;
-    font-style: italic;
-`;
-
-const BookInfo = styled.p`
-    margin: 0.25rem 0;
-    font-size: 0.9rem;
-`;
-
-const RentalInfo = styled.div`
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    margin: 0.5rem 0;
 `;
 
 const RentalDates = styled.div`
-    font-size: 0.9rem;
-`;
-
-const RemainingDays = styled.div`
-    color: ${props => props.status === 'warning' ? '#f44336' : '#4CAF50'};
-    font-weight: bold;
-    font-size: 0.9rem;
-`;
-
-const InfoLabel = styled.span`
-    font-weight: bold;
-    color: #555;
-    margin-right: 0.5rem;
-`;
-
-const LoadingMessage = styled.p`
-    text-align: center;
+    margin: 0.5rem 0;
     color: #666;
-    font-size: 1.1rem;
-    margin: 2rem 0;
+`;
+
+const RatingStars = styled.div`
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+`;
+
+const StarButton = styled.button`
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: ${props => props.filled ? '#ffc107' : '#e4e5e9'};
+
+    &:hover {
+        color: #ffc107;
+    }
+`;
+
+const RemainingDays = styled.p`
+    color: #4CAF50;
+    font-weight: 500;
+    margin-top: 0.5rem;
+`;
+
+const BookListItem = styled.div`
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+    margin-bottom: 1rem;
+    border: 2px solid #4CAF50;
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 8px 16px rgba(76, 175, 80, 0.3);
+        transform: translateY(-3px);
+        border-color: #2E7D32;
+    }
+`;
+
+const StyledModal = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
 `;
 
 const ErrorMessage = styled.p`
@@ -206,14 +302,25 @@ const ErrorMessage = styled.p`
     margin: 2rem 0;
 `;
 
-const EmptyMessage = styled.p`
-    text-align: center;
-    color: #666;
-    font-size: 1.1rem;
-    margin: 2rem 0;
-    padding: 2rem;
-    background: #f5f5f5;
-    border-radius: 8px;
-`;
-
 export default UserDashboard;
+
+const RatingModal = ({ onClose, onSubmit, rating, setRating }) => (
+    <>
+        <ModalOverlay onClick={onClose} />
+        <StyledModal>
+            <h3>Rate this Book</h3>
+            <RatingStars>
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <StarButton
+                        key={star}
+                        onClick={() => setRating(star)}
+                        filled={star <= rating}
+                    >
+                        ★
+                    </StarButton>
+                ))}
+            </RatingStars>
+            <RateButton onClick={onSubmit}>Submit Rating</RateButton>
+        </StyledModal>
+    </>
+);

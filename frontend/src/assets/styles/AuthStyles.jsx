@@ -46,6 +46,35 @@ export const Title2 = styled.h1`
     font-size: 30px;
 `;
 
+export const InputContainer = styled.div`
+    position: relative;
+    width: 100%;
+    margin: 8px 0;
+`;
+
+export const InputError = styled.span`
+    position: absolute;
+    top: -8px;
+    right: 0;
+    background-color: #f44336;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 1;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        right: 10px;
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 4px solid #f44336;
+    }
+`;
 
 export const Input = styled.input`
     background-color: #eee;

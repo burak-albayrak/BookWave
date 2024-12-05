@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
 import { API_URL } from '../../services/api';
 import { UserContext } from '../../context/UserContext';
+import { AddressModal, CreditCardModal } from '../../modals/PaymentAndAddressModals';
 
 const BookModal = ({ book, onClose, onRent }) => {
     const { state } = useContext(UserContext);
@@ -14,6 +15,24 @@ const BookModal = ({ book, onClose, onRent }) => {
     const [userCreditCards, setUserCreditCards] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [selectedCard, setSelectedCard] = useState(null);
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [showCreditCardModal, setShowCreditCardModal] = useState(false);
+    const [addressData, setAddressData] = useState({
+        addressName: '',
+        addressLine: '',
+        country: '',
+        city: '',
+        district: '',
+        postalCode: ''
+    });
+    const [creditCardData, setCreditCardData] = useState({
+        cardName: '',
+        cardNumber: '',
+        cardHolderName: '',
+        expirationMonth: '',
+        expirationYear: '',
+        cvv: ''
+    });
 
     const validateDates = () => {
         const start = new Date(startDate);
@@ -69,10 +88,90 @@ const BookModal = ({ book, onClose, onRent }) => {
         }
     };
 
+    const handleAddressSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await fetch(`${API_URL}/api/address/add/${user.userID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(addressData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to add address');
+            }
+
+            // Update addresses list
+            const updatedAddresses = [...userAddresses, data];
+            setUserAddresses(updatedAddresses);
+            setSelectedAddress(data);
+            setShowAddressModal(false);
+            setAddressData({
+                addressName: '',
+                addressLine: '',
+                country: '',
+                city: '',
+                district: '',
+                postalCode: ''
+            });
+            alert('Address added successfully');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreditCardSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await fetch(`${API_URL}/api/creditcard/add/${user.userID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(creditCardData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to add credit card');
+            }
+
+            // Update credit cards list
+            const updatedCards = [...userCreditCards, data];
+            setUserCreditCards(updatedCards);
+            setSelectedCard(data);
+            setShowCreditCardModal(false);
+            setCreditCardData({
+                cardName: '',
+                cardNumber: '',
+                cardHolderName: '',
+                expirationMonth: '',
+                expirationYear: '',
+                cvv: ''
+            });
+            alert('Credit card added successfully');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         const fetchUserData = async () => {
-            if (!user?.userID) return;
-
             try {
                 const [addressesRes, cardsRes] = await Promise.all([
                     fetch(`${API_URL}/api/address/user/${user.userID}`),
@@ -91,8 +190,10 @@ const BookModal = ({ book, onClose, onRent }) => {
             }
         };
 
-        fetchUserData();
-    }, [user]);
+        if (user?.userID) {
+            fetchUserData();
+        }
+    }, [user?.userID]);
 
     return (
         <ModalOverlay>
@@ -177,6 +278,9 @@ const BookModal = ({ book, onClose, onRent }) => {
                                             </option>
                                         ))}
                                     </Select>
+                                    <AddNewButton onClick={() => setShowAddressModal(true)}>
+                                        + Add New Address
+                                    </AddNewButton>
                                 </FormGroup>
 
                                 <FormGroup>
@@ -195,6 +299,9 @@ const BookModal = ({ book, onClose, onRent }) => {
                                             </option>
                                         ))}
                                     </Select>
+                                    <AddNewButton onClick={() => setShowCreditCardModal(true)}>
+                                        + Add New Card
+                                    </AddNewButton>
                                 </FormGroup>
 
                                 {error && (
@@ -214,6 +321,23 @@ const BookModal = ({ book, onClose, onRent }) => {
                         )}
                 </BookDetails>
             </ModalContent>
+            <AddressModal
+                show={showAddressModal}
+                onClose={() => setShowAddressModal(false)}
+                addressData={addressData}
+                setAddressData={setAddressData}
+                onSubmit={handleAddressSubmit}
+                loading={loading}
+            />
+
+            <CreditCardModal
+                show={showCreditCardModal}
+                onClose={() => setShowCreditCardModal(false)}
+                creditCardData={creditCardData}
+                setCreditCardData={setCreditCardData}
+                onSubmit={handleCreditCardSubmit}
+                loading={loading}
+            />
         </ModalOverlay>
     );
 };
@@ -421,6 +545,23 @@ const NoImageContainer = styled.div`
     font-size: 0.9rem;
     text-align: center;
     padding: 0 10px;
+`;
+
+const AddNewButton = styled.button`
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: transparent;
+    color: #4CAF50;
+    border: 1px dashed #4CAF50;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background-color: rgba(76, 175, 80, 0.1);
+    }
 `;
 
 const Select = styled.select`

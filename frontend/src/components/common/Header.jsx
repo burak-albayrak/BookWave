@@ -12,6 +12,11 @@ const Header = () => {
         navigate('/');
     };
 
+    const getInitials = (name, surname) => {
+        if (!name || !surname) return '';
+        return `${name.charAt(0)}${surname.charAt(0)}`.toUpperCase();
+    };
+
     return (
         <HeaderContainer>
             <LeftSection>
@@ -28,7 +33,7 @@ const Header = () => {
                 {state.user && !state.user.isAdmin && (
                     <ProfileLink to="/profile">
                         <UserAvatar>
-                            {state.user.name[0]}{state.user.surname[0]}
+                            {getInitials(state.user.name, state.user.surname)}
                         </UserAvatar>
                         <span>Profile</span>
                     </ProfileLink>

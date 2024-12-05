@@ -43,6 +43,10 @@ const ProfilePage = () => {
     });
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [userAddresses, setUserAddresses] = useState([]);
+    const getInitials = (name, surname) => {
+        if (!name || !surname) return '';
+        return `${name.charAt(0)}${surname.charAt(0)}`.toUpperCase();
+    };
 
     useEffect(() => {
         const fetchAddresses = async () => {
@@ -214,7 +218,9 @@ const ProfilePage = () => {
         <Container>
             <ProfileCard>
                 <ProfileHeader>
-                    <Avatar>{user?.name?.[0]}{user?.surname?.[0]}</Avatar>
+                    <Avatar>
+                        {getInitials(user.name, user.surname)}
+                    </Avatar>
                     <UserName>{user?.name} {user?.surname}</UserName>
                     <UserRole>{user?.isAdmin ? 'Administrator' : ''}</UserRole>
                 </ProfileHeader>
@@ -615,6 +621,7 @@ const Avatar = styled.div`
 const UserName = styled.h2`
     margin: 0;
     font-size: 1.5rem;
+    text-transform: capitalize;
 `;
 
 const UserRole = styled.div`

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Models;
 using backend.Configs;
 using backend.Models.DTOs;
+using backend.Validations;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,18 +21,22 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<User>> Register(RegisterRequest request)
+    public async Task<ActionResult<User>> Register(UpdateUserRequest request)
     {
-        if (_context.Users.Any(u => u.Email == request.Email))
+        var validator = new UserValidator();
+        var validationResult = validator.ValidateRegistration(request);
+
+        if (!validationResult.IsValid)
         {
-            return BadRequest("Email already exists");
+            return BadRequest(new { errors = validationResult.Errors });
         }
 
-        if (!DateTime.TryParseExact(request.DateOfBirth, "yyyy-MM-dd", 
-                System.Globalization.CultureInfo.InvariantCulture, 
-                System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+        var existingUser = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (existingUser != null)
         {
-            return BadRequest("Invalid date format. Use yyyy-MM-dd");
+            return BadRequest(new { errors = new List<string> { "Email already exists" } });
         }
 
         var user = new User
@@ -40,15 +45,14 @@ public class AuthController : ControllerBase
             Surname = request.Surname,
             Email = request.Email,
             Password = request.Password,
-            DateOfBirth = parsedDate,
-            IsAdmin = false,
-            Reservations = new List<Reservation>()
+            DateOfBirth = DateTime.Parse(request.DateOfBirth),
+            IsAdmin = false
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        user.Password = null;
+        user.Password = null; // Don't send password back
         return Ok(user);
     }
     
