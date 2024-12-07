@@ -17,6 +17,8 @@ const BookModal = ({ book, onClose, onRent }) => {
     const [selectedCard, setSelectedCard] = useState(null);
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [showCreditCardModal, setShowCreditCardModal] = useState(false);
+    const [totalCost, setTotalCost] = useState(0);
+    const DAILY_RATE = 2; // $2 per day
     const [addressData, setAddressData] = useState({
         addressName: '',
         addressLine: '',
@@ -33,6 +35,15 @@ const BookModal = ({ book, onClose, onRent }) => {
         expirationYear: '',
         cvv: ''
     });
+
+    useEffect(() => {
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            setTotalCost(days * DAILY_RATE);
+        }
+    }, [startDate, endDate]);
 
     const validateDates = () => {
         const start = new Date(startDate);
@@ -242,7 +253,6 @@ const BookModal = ({ book, onClose, onRent }) => {
 
                     {book.isAvailable && (
                             <RentalSection>
-                                <h3>Rent this Book</h3>
                                 <FormGroup>
                                     <Label>Start Date</Label>
                                     <DateInput
@@ -311,12 +321,26 @@ const BookModal = ({ book, onClose, onRent }) => {
                                     </ErrorMessage>
                                 )}
 
-                                <RentButton
-                                    onClick={handleRent}
-                                    disabled={loading || !startDate || !endDate || !selectedAddress || !selectedCard}
-                                >
-                                    {loading ? 'Processing...' : 'Rent Book'}
-                                </RentButton>
+                                <RentalHeader>
+                                    <CostInfo>
+                                        <InfoItem>
+                                            <Label>Daily Rate:</Label>
+                                            ${DAILY_RATE}.00
+                                        </InfoItem>
+                                        {totalCost > 0 && (
+                                            <InfoItem>
+                                                <Label>Total Cost:</Label>
+                                                <TotalCost>${totalCost}.00</TotalCost>
+                                            </InfoItem>
+                                        )}
+                                    </CostInfo>
+                                    <RentButton
+                                        onClick={handleRent}
+                                        disabled={loading || !startDate || !endDate || !selectedAddress || !selectedCard}
+                                    >
+                                        {loading ? 'Processing...' : 'Rent Book'}
+                                    </RentButton>
+                                </RentalHeader>
                             </RentalSection>
                         )}
                 </BookDetails>
@@ -393,6 +417,12 @@ const ModalOverlay = styled.div`
     z-index: 1000;
 `;
 
+const TotalCost = styled.span`
+    color: #4CAF50;
+    font-weight: 600;
+    font-size: 1.2rem;
+`;
+
 const ErrorMessage = styled.div`
     grid-column: 1 / -1;
     color: #d32f2f;
@@ -457,8 +487,8 @@ const ImageSection = styled.div`
 
 const InfoSection = styled.div`
     flex: 1;
-    padding-right: 2rem;
-    border-right: 1px solid #e0e0e0;
+    padding-right: ${props => props.isAvailable ? '2rem' : '0'};
+    border-right: ${props => props.isAvailable ? '1px solid #e0e0e0' : 'none'};
 
     @media (max-width: 1200px) {
         border-right: none;
@@ -598,6 +628,19 @@ const DateInput = styled.input`
         border-color: #2E7D32;
         box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
     }
+`;
+
+const RentalHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+`;
+
+const CostInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 `;
 
 const RentButton = styled.button`
