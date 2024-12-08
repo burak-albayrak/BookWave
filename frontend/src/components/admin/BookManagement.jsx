@@ -441,14 +441,17 @@ const FormGrid = styled.div`
 const ActionButton = styled.button`
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     border: none;
     border-radius: 6px;
     background: ${props => props.danger ? '#ffebee' : '#e8f5e9'};
     color: ${props => props.danger ? '#c62828' : '#2E7D32'};
     cursor: pointer;
     transition: all 0.2s ease;
+    width: 100%;
+    white-space: nowrap;
 
     &:hover {
         background: ${props => props.danger ? '#ffcdd2' : '#c8e6c9'};
