@@ -64,18 +64,31 @@ public class BookController : ControllerBase
             Console.WriteLine($"Controller: Getting books for user {userId}");
             var reservations = await _repository.GetUserActiveReservations(userId);
         
+            if (reservations == null)
+            {
+                return Ok(new List<UserBookDto>());
+            }
+
             var userBooks = reservations.Select(r => new UserBookDto
             {
-                ISBN = r.Book.ISBN,
-                BookTitle = r.Book.BookTitle,
-                BookAuthor = r.Book.BookAuthor,
-                YearOfPublication = r.Book.YearOfPublication,
-                Publisher = r.Book.Publisher,
-                ImageUrlSmall = r.Book.ImageUrlSmall,
-                ImageUrlMedium = r.Book.ImageUrlMedium,
-                ImageUrlLarge = r.Book.ImageUrlLarge,
+                ISBN = r.Book?.ISBN,
+                BookTitle = r.Book?.BookTitle,
+                BookAuthor = r.Book?.BookAuthor,
+                YearOfPublication = r.Book?.YearOfPublication ?? 0,
+                Publisher = r.Book?.Publisher,
+                ImageUrlSmall = r.Book?.ImageUrlSmall,
+                ImageUrlMedium = r.Book?.ImageUrlMedium,
+                ImageUrlLarge = r.Book?.ImageUrlLarge,
                 StartDate = r.StartDate,
-                EndDate = r.EndDate
+                EndDate = r.EndDate,
+                AddressName = r.Addresses?.AddressName ?? "N/A",
+                AddressLine = r.Addresses?.AddressLine ?? "N/A",
+                City = r.Addresses?.City ?? "N/A",
+                District = r.Addresses?.District ?? "N/A",
+                CardName = r.Card?.CardName ?? "N/A",
+                CardNumber = r.Card?.CardNumber != null ? 
+                    r.Card.CardNumber.Substring(Math.Max(0, r.Card.CardNumber.Length - 4)) : "N/A",
+                CardHolderName = r.Card?.CardHolderName ?? "N/A"
             }).ToList();
 
             Console.WriteLine($"Controller: Successfully retrieved {userBooks.Count} books");
@@ -84,6 +97,7 @@ public class BookController : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"Controller: Error getting user books: {ex.Message}");
+            Console.WriteLine($"Controller: Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { message = "Error retrieving user's books", error = ex.Message });
         }
     }

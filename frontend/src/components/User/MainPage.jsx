@@ -340,7 +340,7 @@ const BookCard = styled.div`
 
     &:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.50);
     }
 `;
 

@@ -21,22 +21,20 @@ const Header = () => {
         <HeaderContainer>
             <LeftSection>
                 <BrandName onClick={() => navigate('/main')}>BookWave</BrandName>
-                <NavLink to="/main">Home</NavLink>
-                {state.user && <NavLink to="/user">My Books</NavLink>}
+                {state.user && !state.user.isAdmin && <NavLink to="/main">Home</NavLink>}
+                {state.user && !state.user.isAdmin && <NavLink to="/user">My Books</NavLink>}
             </LeftSection>
 
             <RightSection>
-                {state.user?.isAdmin && (
-                    <NavLink to="/admin">Admin Panel</NavLink>
-                )}
-
                 {state.user && !state.user.isAdmin && (
-                    <ProfileLink to="/profile">
-                        <UserAvatar>
-                            {getInitials(state.user.name, state.user.surname)}
-                        </UserAvatar>
-                        <span>Profile</span>
-                    </ProfileLink>
+                    <>
+                        <ProfileLink to="/profile">
+                            <UserAvatar>
+                                {getInitials(state.user.name, state.user.surname)}
+                            </UserAvatar>
+                            <span>Profile</span>
+                        </ProfileLink>
+                    </>
                 )}
 
                 {state.user && (

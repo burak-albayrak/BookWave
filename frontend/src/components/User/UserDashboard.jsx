@@ -81,30 +81,55 @@ const UserDashboard = () => {
                         <BookListItem key={book.isbn}>
                             <BookImage src={book.imageUrlMedium || book.imageUrlSmall} alt={book.bookTitle} />
                             <BookDetails>
-                                <BookTitle>{book.bookTitle}</BookTitle>
-                                <BookAuthor>{book.bookAuthor}</BookAuthor>
+                                <BookInfo>
+                                    <BookTitle>{book.bookTitle}</BookTitle>
+                                    <BookAuthor>{book.bookAuthor}</BookAuthor>
+                                </BookInfo>
+
                                 <RentalDates>
-                                    <p>Start Date: {new Date(book.startDate).toLocaleDateString()}</p>
-                                    <p>Due Date: {new Date(book.endDate).toLocaleDateString()}</p>
-                                    <RemainingDays>
-                                        Remaining: {calculateRemainingDays(book.endDate)} days
+                                    <DateInfo>
+                                        <span>Start Date</span>
+                                        <span>{new Date(book.startDate).toLocaleDateString()}</span>
+                                    </DateInfo>
+                                    <DateInfo>
+                                        <span>Due Date</span>
+                                        <span>{new Date(book.endDate).toLocaleDateString()}</span>
+                                    </DateInfo>
+                                    <RemainingDays days={calculateRemainingDays(book.endDate)}>
+                                        {calculateRemainingDays(book.endDate)} days remaining
                                     </RemainingDays>
                                 </RentalDates>
-                                {bookRatings[book.isbn] && (
-                                    <RatingContainer>
-                                        <RatingLabel>Your Rating:</RatingLabel>
-                                        <StarContainer>
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star key={star} filled={(star <= bookRatings[book.isbn]).toString()}>
-                                                    ★
-                                                </Star>
-                                            ))}
-                                        </StarContainer>
-                                    </RatingContainer>
-                                )}
-                                <RateButton onClick={() => handleRateBook(book.isbn)}>
-                                    {bookRatings[book.isbn] ? 'Update Rating' : 'Rate this Book'}
-                                </RateButton>
+
+                                <InfoSection>
+                                    <DeliveryInfo>
+                                        <h4>Delivery Address</h4>
+                                        <p><strong>{book.addressName}</strong></p>
+                                        <p>{book.addressLine}</p>
+                                        <p>{book.district}, {book.city}</p>
+                                    </DeliveryInfo>
+
+                                    <PaymentInfo>
+                                        <h4>Payment Method</h4>
+                                        <p><strong>{book.cardName}</strong></p>
+                                        <p>{book.cardHolderName}</p>
+                                        <p>**** **** **** {book.cardNumber}</p>
+                                    </PaymentInfo>
+                                </InfoSection>
+
+                                <RatingContainer style={{ marginTop: '1rem' }}>
+                                    {bookRatings[book.isbn] ? (
+                                        <>
+                                            <BookRating rating={bookRatings[book.isbn]} />
+                                            <RateButton onClick={() => handleRateBook(book.isbn)}>
+                                                Update Rating
+                                            </RateButton>
+                                        </>
+                                    ) : (
+                                        <RateButton onClick={() => handleRateBook(book.isbn)}>
+                                            Rate This Book
+                                        </RateButton>
+                                    )}
+                                </RatingContainer>
                             </BookDetails>
                         </BookListItem>
                     ))}
@@ -127,13 +152,10 @@ const RatingContainer = styled.div`
     margin-top: 1rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: 1rem;
 `;
 
-const StarContainer = styled.div`
-    display: inline-flex;
-    gap: 2px;
-`;
 
 const Star = styled.span`
     color: ${props => props.filled === 'true' ? '#ffc107' : '#e4e5e9'};
@@ -211,34 +233,47 @@ const RateButton = styled.button`
         box-shadow: none;
     }
 `;
+
 const BookImage = styled.img`
-    width: 100px;
-    height: 150px;
+    width: 120px;
+    height: 180px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+`;
+
+const BookInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 `;
 
 const BookDetails = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 1rem;
 `;
 
 const BookTitle = styled.h3`
     margin: 0;
-    color: #333;
-    font-size: 1.2rem;
+    color: #2E7D32;
+    font-size: 1.4rem;
 `;
 
 const BookAuthor = styled.p`
     color: #666;
-    margin: 0.5rem 0;
+    margin: 0;
+    font-size: 1.1rem;
 `;
 
 const RentalDates = styled.div`
-    margin: 0.5rem 0;
-    color: #666;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 8px;
 `;
 
 const RatingStars = styled.div`
@@ -259,10 +294,13 @@ const StarButton = styled.button`
     }
 `;
 
-const RemainingDays = styled.p`
-    color: #4CAF50;
+const RemainingDays = styled.div`
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    background: ${props => props.days <= 3 ? '#ffebee' : '#e8f5e9'};
+    color: ${props => props.days <= 3 ? '#c62828' : '#2E7D32'};
+    border-radius: 6px;
     font-weight: 500;
-    margin-top: 0.5rem;
 `;
 
 const BookListItem = styled.div`
@@ -270,16 +308,37 @@ const BookListItem = styled.div`
     gap: 2rem;
     padding: 2rem;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
-    margin-bottom: 1rem;
-    border: 2px solid #4CAF50;
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    transition: all 0.2s ease;
 
     &:hover {
-        box-shadow: 0 8px 16px rgba(76, 175, 80, 0.3);
-        transform: translateY(-3px);
-        border-color: #2E7D32;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.50);
+    }
+`;
+
+const InfoSection = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+`;
+
+const DateInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    span:first-child {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    span:last-child {
+        color: #333;
+        font-weight: 500;
     }
 `;
 
@@ -293,6 +352,27 @@ const StyledModal = styled.div`
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+`;
+
+const DeliveryInfo = styled.div`
+    background: #f8f8f8;
+    padding: 1rem;
+    border-radius: 8px;
+
+    h4 {
+        color: #333;
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    p {
+        margin: 0.25rem 0;
+        color: #666;
+    }
+`;
+
+const PaymentInfo = styled(DeliveryInfo)`
+    background: #f0f7f0;
 `;
 
 const ErrorMessage = styled.p`
@@ -320,7 +400,17 @@ const RatingModal = ({ onClose, onSubmit, rating, setRating }) => (
                     </StarButton>
                 ))}
             </RatingStars>
-            <RateButton onClick={onSubmit}>Submit Rating</RateButton>
         </StyledModal>
     </>
 );
+
+const BookRating = ({ rating }) => {
+    return (
+        <RatingContainer>
+            <RatingText>Your Rating: </RatingText>
+            {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={star} filled={(star <= rating).toString()}>★</Star>
+            ))}
+        </RatingContainer>
+    );
+};

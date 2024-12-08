@@ -61,19 +61,23 @@ const AuthPage = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(loginData)
+                body: JSON.stringify(loginData),
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+            if (response.ok) {
+                dispatch({ type: 'SET_USER', payload: data });
+                if (data.isAdmin) {
+                    navigate('/admin');
+                } else {
+                    navigate('/main');
+                }
+            } else {
+                setError(data.message || 'Login failed');
             }
-
-            dispatch({ type: 'SET_USER', payload: data });
-            navigate('/main');
         } catch (err) {
-            setError(err.message);
+            setError('An error occurred during login');
         } finally {
             setLoading(false);
         }

@@ -74,14 +74,16 @@ public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm,
     return booksWithRatings.Skip(skip).Take(take);
 }
     
-    public async Task<IEnumerable<Reservation>> GetUserActiveReservations(int userId)
-    {
-        return await _context.Reservations
-            .Where(r => r.UserID == userId && r.EndDate >= DateTime.Today)
-            .Include(r => r.Book)
-            .OrderByDescending(r => r.StartDate)
-            .ToListAsync();
-    }
+public async Task<IEnumerable<Reservation>> GetUserActiveReservations(int userId)
+{
+    return await _context.Reservations
+        .Where(r => r.UserID == userId && r.EndDate >= DateTime.Today)
+        .Include(r => r.Book)
+        .Include(r => r.Addresses)  
+        .Include(r => r.Card)    
+        .OrderByDescending(r => r.StartDate)
+        .ToListAsync();
+}
     
     public async Task<bool> HasReservationConflict(string isbn, DateTime startDate, DateTime endDate)
     {

@@ -119,7 +119,6 @@ const BookModal = ({ book, onClose, onRent }) => {
                 throw new Error(data.message || 'Failed to add address');
             }
 
-            // Update addresses list
             const updatedAddresses = [...userAddresses, data];
             setUserAddresses(updatedAddresses);
             setSelectedAddress(data);
@@ -160,7 +159,6 @@ const BookModal = ({ book, onClose, onRent }) => {
                 throw new Error(data.message || 'Failed to add credit card');
             }
 
-            // Update credit cards list
             const updatedCards = [...userCreditCards, data];
             setUserCreditCards(updatedCards);
             setSelectedCard(data);
