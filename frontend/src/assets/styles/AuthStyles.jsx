@@ -255,17 +255,6 @@ export const RightOverlayPanel = styled(OverlayPanel).attrs(props => ({
     `}
 `;
 
-export const Paragraph = styled.p`
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.5;
-    letter-spacing: 0.5px;
-    margin: 15px 0;
-    margin-left: 100px;
-    max-width: 80%;
-    color: #2c3e50;
-`;
-
 export const Text = styled.p`
     font-size: 14px;
     font-weight: 400;

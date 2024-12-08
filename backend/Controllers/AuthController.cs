@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Models;
 using backend.Configs;
 using backend.Models.DTOs;
+using backend.Models.RequestModels;
+using backend.Models.ResponseModels;
 using backend.Validations;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +54,7 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        user.Password = null; // Don't send password back
+        user.Password = null;
         return Ok(user);
     }
     
@@ -77,7 +79,7 @@ public class AuthController : ControllerBase
 
         await _context.SaveChangesAsync();
     
-        user.Password = null; // Don't send password back
+        user.Password = null;
         return Ok(user);
     }
 

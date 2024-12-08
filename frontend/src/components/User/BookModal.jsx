@@ -502,14 +502,6 @@ const BookImage = styled.img`
     border: 1px solid #e0e0e0;
 `;
 
-const LargeBookImage = styled.img`
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-`;
-
 const BookTitle = styled.h2`
     color: #333;
     margin-bottom: 1rem;

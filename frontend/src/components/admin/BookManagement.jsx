@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaSearch, FaUser, FaCalendar, FaBuilding } from 'react-icons/fa';
 import { API_URL } from '../../services/api';
 import LoadingSpinner from '../../assets/styles/LoadingSpinner';
 import Pagination from '../../assets/styles/Pagination';
@@ -110,22 +110,31 @@ const BookManagement = () => {
             {loading ? (
                 <LoadingSpinner />
             ) : (
-                <BooksList>
+                <BookGrid>
                     {books.map((book) => (
                         <BookCard key={book.isbn}>
-                            <BookImageSection>
+                            <BookImageContainer>
                                 {book.imageUrlMedium ? (
                                     <BookImage src={book.imageUrlMedium} alt={book.bookTitle} />
                                 ) : (
                                     <NoImageContainer>No Image</NoImageContainer>
                                 )}
-                            </BookImageSection>
+                            </BookImageContainer>
+
                             <BookContent>
                                 <BookInfo>
                                     <BookTitle>{book.bookTitle}</BookTitle>
-                                    <BookAuthor>{book.bookAuthor}</BookAuthor>
-                                    <Publisher>{book.publisher}, {book.yearOfPublication}</Publisher>
+                                    <BookDetail>
+                                        <FaUser /> {book.bookAuthor}
+                                    </BookDetail>
+                                    <BookDetail>
+                                        <FaCalendar /> {book.yearOfPublication}
+                                    </BookDetail>
+                                    <BookDetail>
+                                        <FaBuilding /> {book.publisher}
+                                    </BookDetail>
                                 </BookInfo>
+
                                 <Actions>
                                     <ActionButton onClick={() => handleEditBook(book)}>
                                         <FaEdit /> Edit
@@ -137,14 +146,14 @@ const BookManagement = () => {
                             </BookContent>
                         </BookCard>
                     ))}
-                </BooksList>
+                </BookGrid>
             )}
 
             {totalPages > 1 && (
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={(page) => handleSearch(page)}
+                    onPageChange={handleSearch}
                 />
             )}
 
@@ -303,25 +312,27 @@ const SearchButton = styled.button`
     }
 `;
 
-const BooksList = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-    margin: 2rem 0;
-`;
-
 const BookCard = styled.div`
-    display: flex;
-    gap: 1.5rem;
-    padding: 1.5rem;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    gap: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+    }
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem;
     }
 `;
 
@@ -340,16 +351,30 @@ const Select = styled.select`
     }
 `;
 
-const BookImageSection = styled.div`
-    flex-shrink: 0;
+const BookGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    @media (max-width: 1200px) {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+`;
+
+const BookImageContainer = styled.div`
+    flex: 0 0 140px;
 `;
 
 const BookImage = styled.img`
-    width: 120px;
-    height: 180px;
+    width: 140px;
+    height: 200px;
     object-fit: cover;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 `;
 
 const NoImageContainer = styled.div`
@@ -369,7 +394,8 @@ const BookContent = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0; 
 `;
 
 const BookInfo = styled.div`
@@ -379,21 +405,12 @@ const BookInfo = styled.div`
 `;
 
 const BookTitle = styled.h3`
-    margin: 0;
     color: #2E7D32;
-    font-size: 1.4rem;
-`;
-
-const BookAuthor = styled.p`
-    color: #666;
+    font-size: 1.3rem;
     margin: 0;
-    font-size: 1.1rem;
-`;
-
-const Publisher = styled.p`
-    color: #666;
-    margin: 0;
-    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `;
 
 const Actions = styled.div`
@@ -409,15 +426,6 @@ const ErrorMessage = styled.div`
     background: #ffebee;
     border-radius: 6px;
     margin-bottom: 1rem;
-`;
-
-const PaginationContainer = styled.div`
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 2rem;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
 `;
 
 const FormGrid = styled.div`
@@ -444,6 +452,19 @@ const ActionButton = styled.button`
 
     &:hover {
         background: ${props => props.danger ? '#ffcdd2' : '#c8e6c9'};
+    }
+`;
+
+const BookDetail = styled.p`
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    @media (max-width: 768px) {
+        justify-content: center;
     }
 `;
 

@@ -105,13 +105,12 @@ const MainPage = () => {
     };
 
     const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-        const pageRange = 2; // Her yönde kaç sayfa gösterileceği
+        const pageRange = 2;
         const totalVisible = pageRange * 2 + 1;
 
         let startPage = Math.max(1, currentPage - pageRange);
         let endPage = Math.min(totalPages, currentPage + pageRange);
 
-        // Sayfa aralığını dengele
         if (endPage - startPage + 1 < totalVisible) {
             if (startPage === 1) {
                 endPage = Math.min(totalPages, startPage + totalVisible - 1);
@@ -226,7 +225,8 @@ const MainPage = () => {
                         ))
                     ) : hasSearched && (
                         <NoResultsText>
-                            No books found matching "{displayedSearchTerm}"
+                            <span>No Results Found</span>
+                            <p>No books found matching "{displayedSearchTerm}"</p>
                         </NoResultsText>
                     )}
                 </ResultsSection>
@@ -265,16 +265,6 @@ const BookInfo = styled.div`
     flex: 1;
 `;
 
-const StatusBadge = styled.span`
-    background-color: ${props => props.available === 'true' ? '#e8f5e9' : '#ffebee'};
-    color: ${props => props.available === 'true' ? '#4CAF50' : '#f44336'};
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    margin: 0.5rem auto;
-    display: inline-block;
-`;
-
 const Logo = styled.img`
     width: 200px;
     height: 200px;
@@ -289,6 +279,10 @@ const SearchSection = styled.div`
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+    }
 `;
 
 const SearchBar = styled.input`
@@ -297,9 +291,15 @@ const SearchBar = styled.input`
     border: 2px solid #4CAF50;
     border-radius: 8px;
     font-size: 1rem;
-    
+    transition: all 0.2s;
+
     &:focus {
         outline: none;
+        border-color: #2E7D32;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
+
+    &:hover {
         border-color: #2E7D32;
     }
 `;
@@ -311,10 +311,19 @@ const SearchButton = styled.button`
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
-    
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.2s;
+    min-width: 120px;
+
     &:hover {
         background-color: #2E7D32;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(46, 125, 50, 0.1);
+    }
+
+    &:active {
+        transform: translateY(0);
     }
 `;
 
@@ -440,23 +449,39 @@ const BookAuthor = styled.p`
     color: #666;
 `;
 
-const Pagination = styled.div`
+const NoResultsText = styled.div`
+    grid-column: 1 / -1;  // Grid'in tüm sütunlarını kapla
     display: flex;
-    gap: 0.5rem;
-    margin-top: 2rem;
-`;
-
-const NoResultsText = styled.p`
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    margin: 2rem auto;
     text-align: center;
-    color: #4CAF50;
-    font-size: 1.2rem;
-    margin: 3rem;
-    padding: 2rem;
-    background-color: #e8f5e9;
-    border-radius: 8px;
-    border: 1px solid #4CAF50;
-    width: 100%;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     max-width: 600px;
+
+    &::before {
+        content: '📚';
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    span {
+        color: #2E7D32;
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
+    }
 `;
 
 const FilterSection = styled.div`
@@ -466,6 +491,11 @@ const FilterSection = styled.div`
     justify-content: center;
     width: 100%;
     max-width: 600px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+    }
 `;
 
 const PaginationContainer = styled.div`
@@ -483,29 +513,60 @@ const Ellipsis = styled.span`
 `;
 
 const Select = styled.select`
-    padding: 0.5rem;
-    border: 1px solid #4CAF50;
-    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
     background-color: white;
     cursor: pointer;
+    font-size: 1rem;
+    min-width: 200px;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234CAF50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
 
     &:focus {
         outline: none;
+        border-color: #2E7D32;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    }
+
+    &:hover {
         border-color: #2E7D32;
     }
 `;
 
 const FilterButton = styled.button`
-    padding: 0.5rem 1rem;
-    border: 1px solid #4CAF50;
-    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
     background-color: ${props => props.active ? '#4CAF50' : 'white'};
     color: ${props => props.active ? 'white' : '#4CAF50'};
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 1rem;
+    font-weight: 500;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 
     &:hover {
         background-color: ${props => props.active ? '#2E7D32' : '#e8f5e9'};
+        border-color: #2E7D32;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(46, 125, 50, 0.1);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:before {
+        content: '${props => props.active ? '✓' : ''}';
+        font-size: 1.1rem;
     }
 `;
 

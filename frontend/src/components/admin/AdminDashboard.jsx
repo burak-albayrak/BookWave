@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FaUsers, FaBook, FaCalendarCheck } from 'react-icons/fa';
+import { FaUsers, FaBook } from 'react-icons/fa';
 import UserManagement from './UserManagement';
 import BookManagement from './BookManagement';
 

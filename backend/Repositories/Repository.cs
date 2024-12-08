@@ -19,7 +19,6 @@ public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm,
 {
     var query = _context.Books.AsQueryable();
 
-    // Filtreleme
     if (!string.IsNullOrEmpty(searchTerm))
     {
         query = query.Where(b => b.BookTitle.Contains(searchTerm) || 
@@ -32,11 +31,9 @@ public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm,
         query = query.Where(b => b.IsAvailable == isAvailable.Value);
     }
 
-    // Önce tüm kitapları çekelim
     var allBooks = await query.ToListAsync();
     var booksWithRatings = new List<BookWithRatingDto>();
 
-    // Her kitap için rating hesaplayalım
     foreach (var book in allBooks)
     {
         var averageRating = await GetBookAverageRating(book.ISBN);
@@ -55,7 +52,6 @@ public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm,
         });
     }
 
-    // Sıralama
     if (sortOption.HasValue)
     {
         booksWithRatings = sortOption.Value switch
@@ -70,7 +66,6 @@ public async Task<IEnumerable<BookWithRatingDto>> SearchBooks(string searchTerm,
         };
     }
 
-    // En son sayfalama
     return booksWithRatings.Skip(skip).Take(take);
 }
     
@@ -90,9 +85,9 @@ public async Task<IEnumerable<Reservation>> GetUserActiveReservations(int userId
         return await _context.Reservations
             .Where(r => r.ISBN == isbn)
             .AnyAsync(r => 
-                    (startDate >= r.StartDate && startDate <= r.EndDate) || // New start date falls within existing reservation
-                    (endDate >= r.StartDate && endDate <= r.EndDate) || // New end date falls within existing reservation
-                    (startDate <= r.StartDate && endDate >= r.EndDate) // New reservation completely encompasses existing one
+                    (startDate >= r.StartDate && startDate <= r.EndDate) ||
+                    (endDate >= r.StartDate && endDate <= r.EndDate) || 
+                    (startDate <= r.StartDate && endDate >= r.EndDate) 
             );
     }
 

@@ -207,7 +207,6 @@ public async Task<IActionResult> DeleteBook(string isbn)
     if (book == null)
         return NotFound("Book not found");
 
-    // Check if book has any active reservations
     var hasActiveReservations = await _context.Reservations
         .AnyAsync(r => r.ISBN == isbn && r.EndDate > DateTime.Now);
 

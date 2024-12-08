@@ -1,4 +1,5 @@
 using backend.Models.DTOs;
+using backend.Models.RequestModels;
 
 namespace backend.Validations;
 
@@ -8,7 +9,6 @@ public class UserValidator
     {
         var result = new ValidationResult();
 
-        // Ad validasyonu
         if (string.IsNullOrWhiteSpace(request.Name))
         {
             result.AddError("Name is required");
@@ -18,7 +18,6 @@ public class UserValidator
             result.AddError("Name must be between 2 and 50 characters");
         }
 
-        // Soyad validasyonu
         if (string.IsNullOrWhiteSpace(request.Surname))
         {
             result.AddError("Surname is required");
@@ -28,7 +27,6 @@ public class UserValidator
             result.AddError("Surname must be between 2 and 50 characters");
         }
 
-        // Email validasyonu
         if (string.IsNullOrWhiteSpace(request.Email))
         {
             result.AddError("Email is required");
@@ -38,7 +36,6 @@ public class UserValidator
             result.AddError("Invalid email format");
         }
 
-        // Şifre validasyonu
         if (string.IsNullOrWhiteSpace(request.Password))
         {
             result.AddError("Password is required");
@@ -74,7 +71,6 @@ public class UserValidator
             var today = DateTime.Today;
             var age = today.Year - birthDate.Year;
     
-            // Doğum günü bu yıl gelmediyse yaşı bir azalt
             if (birthDate.Date > today.AddYears(-age)) age--;
 
             if (birthDate > today)

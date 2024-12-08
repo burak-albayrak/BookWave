@@ -1,5 +1,7 @@
-using backend.Configs;
+using backend.Models.DTOs;
 using CsvHelper.Configuration;
+
+namespace backend.Configs;
 
 public sealed class RatingMap : ClassMap<RatingImportDto>
 {

@@ -1,4 +1,4 @@
-namespace backend.Configs;
+namespace backend.Models.DTOs;
 
 public class RatingImportDto
 {

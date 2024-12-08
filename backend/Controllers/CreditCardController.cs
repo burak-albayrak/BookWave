@@ -1,6 +1,7 @@
 using backend.Configs;
 using backend.Models;
 using backend.Models.DTOs;
+using backend.Models.RequestModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,7 +41,7 @@ public class CreditCardController : ControllerBase
         _context.CreditCards.Add(creditCard);
         await _context.SaveChangesAsync();
 
-        creditCard.CVV = "***"; // CVV'yi gizle
+        creditCard.CVV = "***";
         return Ok(creditCard);
     }
 
@@ -56,7 +57,6 @@ public class CreditCardController : ControllerBase
             return Ok(new List<CreditCard>());
         }
 
-        // Hide CVV for all cards
         foreach (var card in creditCards)
         {
             card.CVV = "***";
@@ -85,7 +85,7 @@ public class CreditCardController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        creditCard.CVV = "***"; // Hide CVV in response
+        creditCard.CVV = "***";
         return Ok(creditCard);
     }
 }

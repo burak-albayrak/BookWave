@@ -107,7 +107,6 @@ public class BookController : ControllerBase
     {
         try 
         {
-            // Verify address exists and belongs to user
             var address = await _context.Addresses
                 .FirstOrDefaultAsync(a => a.AddressID == request.AddressID && a.UserID == request.UserID);
             if (address == null)
@@ -115,7 +114,6 @@ public class BookController : ControllerBase
                 return BadRequest("Invalid address selected");
             }
 
-            // Verify credit card exists and belongs to user
             var card = await _context.CreditCards
                 .FirstOrDefaultAsync(c => c.CardID == request.CardID && c.UserID == request.UserID);
             if (card == null)
@@ -123,7 +121,6 @@ public class BookController : ControllerBase
                 return BadRequest("Invalid credit card selected");
             }
 
-            // Check if book is available
             var book = await _context.Books
                 .FirstOrDefaultAsync(b => b.ISBN == request.ISBN && b.IsAvailable);
             if (book == null)

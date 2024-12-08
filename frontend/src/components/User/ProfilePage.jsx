@@ -605,17 +605,24 @@ const ProfileHeader = styled.div`
 `;
 
 const Avatar = styled.div`
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     background: white;
     color: #4CAF50;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
-    margin: 0 auto 1rem;
+    margin: 0 auto 1.5rem;
+    border: 4px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+
+    &:hover {
+        transform: scale(1.05);
+    }
 `;
 
 const UserName = styled.h2`
@@ -632,13 +639,22 @@ const UserRole = styled.div`
 
 const InfoSection = styled.div`
     padding: 2rem;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 0 0 12px 12px;
 `;
 
 const InfoItem = styled.div`
     margin-bottom: 1.5rem;
-    background: #f8f9fa;
-    padding: 1.2rem;
-    border-radius: 8px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76,175,80,0.1);
+    }
 `;
 
 const Form = styled.form`
@@ -648,11 +664,11 @@ const Form = styled.form`
 const Form2 = styled.form`
     padding: 1rem;
     display: grid;
-    grid-template-columns: 1fr 1fr; // Two columns
+    grid-template-columns: 1fr 1fr; 
     gap: 1rem;
     
     @media (max-width: 768px) {
-        grid-template-columns: 1fr; // Single column on mobile
+        grid-template-columns: 1fr; 
     }
 `;
 
@@ -678,14 +694,21 @@ const Label = styled.label`
 const Value = styled.div`
     color: #333;
     font-size: 0.95rem;
-    line-height: 1.5;
-    padding: 0.5rem 0;
-    border-bottom: 2px solid #e0e0e0;
+    line-height: 1.6;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f8f9fa;
+        padding-left: 0.5rem;
+    }
 
     &:last-child {
         border-bottom: none;
     }
 `;
+
 const Input = styled.input`
     width: 100%;
     padding: 0.8rem;
@@ -712,19 +735,25 @@ const ButtonGroup = styled.div`
 
 const Button = styled.button`
     flex: 1;
-    padding: 0.8rem;
+    padding: 1rem;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 
     ${props => props.secondary ? `
         background: #f5f5f5;
         color: #333;
         
         &:hover {
-            background: #eee;
+            background: #eeeeee;
+            transform: translateY(-2px);
         }
     ` : `
         background: #4CAF50;
@@ -732,11 +761,15 @@ const Button = styled.button`
         
         &:hover {
             background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76,175,80,0.2);
         }
         
         &:disabled {
             background: #9e9e9e;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
     `}
 `;
